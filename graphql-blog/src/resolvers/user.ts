@@ -1,8 +1,13 @@
 import { GraphQLError } from "graphql";
-import { users, posts } from "../data/index.js";
+import {
+  findUserById,
+  findUserByUsername,
+  createUser,
+} from "../repository/users.js";
+import { findPostsOfUser } from "../repository/post.js";
 
-const getUserById = (_: any, args: any) => {
-  const user = users.find((u) => u.id === args.id);
+const getUserById = async (_: any, args: any) => {
+  const user = await findUserById(args.id);
 
   if (!user) {
     throw new GraphQLError("user with id not found", {
@@ -13,8 +18,8 @@ const getUserById = (_: any, args: any) => {
   return user;
 };
 
-const getUserByUsername = (_: any, args: any) => {
-  const user = users.find((u) => u.username === args.username);
+const getUserByUsername = async (_: any, args: any) => {
+  const user = await findUserByUsername(args.username);
 
   if (!user) {
     throw new GraphQLError("user with username not found", {
@@ -25,23 +30,24 @@ const getUserByUsername = (_: any, args: any) => {
   return user;
 };
 
-const addUser = (_: any, args: any) => {
-  if (users.some((u) => u.username === args.username)) {
+const addUser = async (_: any, args: any) => {
+  const user = await findUserByUsername(args.username);
+
+  if (user) {
     throw new GraphQLError("username already exists", {
       extensions: { code: "BAD_USER_INPUT" },
     });
   }
 
-  const newUser = {
-    id: `u${String(users.length + 1)}`,
-    username: args.username,
-    email: args.email || null,
-    posts: [],
-  };
-
-  users.push(newUser);
+  const newUser = await createUser(args.username, args.email);
 
   return newUser;
+};
+
+const userPosts = async (parent: any) => {
+  const posts = await findPostsOfUser(parent.id);
+
+  return posts;
 };
 
 export const userResolvers = {
@@ -53,7 +59,6 @@ export const userResolvers = {
     addUser: addUser,
   },
   User: {
-    posts: (parent: any) =>
-      parent.posts.map((pid: any) => posts.find((p) => p.id === pid)),
+    posts: userPosts,
   },
 };

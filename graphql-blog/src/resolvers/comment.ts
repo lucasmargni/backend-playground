@@ -1,9 +1,16 @@
 import { GraphQLError } from "graphql";
-import { users, posts, comments } from "../data/index.js";
+import {
+  findCommentById,
+  createComment,
+  incrementCommentLikes,
+  incrementCommentDislikes,
+} from "../repository/comments.js";
+import { findUserById } from "../repository/users.js";
+import { findPostById } from "../repository/post.js";
 
-const addComment = (_: any, args: any) => {
-  const user = users.find((u) => u.id === args.userId);
-  const post = posts.find((p) => p.id === args.postId);
+const addComment = async (_: any, args: any) => {
+  const user = await findUserById(args.userId);
+  const post = await findPostById(args.postId);
 
   if (!user) {
     throw new GraphQLError("user not found", {
@@ -15,24 +22,13 @@ const addComment = (_: any, args: any) => {
     });
   }
 
-  const newComment = {
-    id: `c${String(comments.length + 1)}`,
-    text: args.text,
-    likes: 0,
-    dislikes: 0,
-    user: args.userId,
-    post: args.postId,
-  };
-
-  comments.push(newComment);
-
-  post.comments.push(newComment.id);
+  const newComment = await createComment(args.text, args.userId, args.postId);
 
   return newComment;
 };
 
-const likeComment = (_: any, args: any) => {
-  const comment = comments.find((c) => c.id === args.commentId);
+const likeComment = async (_: any, args: any) => {
+  const comment = await findCommentById(args.id);
 
   if (!comment) {
     throw new GraphQLError("comment not found", {
@@ -40,13 +36,13 @@ const likeComment = (_: any, args: any) => {
     });
   }
 
-  comment.likes++;
+  const updatedComment = await incrementCommentLikes(args.id);
 
-  return comment;
+  return updatedComment;
 };
 
-const dislikeComment = (_: any, args: any) => {
-  const comment = comments.find((c) => c.id === args.commentId);
+const dislikeComment = async (_: any, args: any) => {
+  const comment = await findCommentById(args.id);
 
   if (!comment) {
     throw new GraphQLError("comment not found", {
@@ -54,9 +50,21 @@ const dislikeComment = (_: any, args: any) => {
     });
   }
 
-  comment.dislikes++;
+  const updatedComment = await incrementCommentDislikes(args.id);
 
-  return comment;
+  return updatedComment;
+};
+
+const commentUser = async (parent: any) => {
+  const user = await findUserById(parent.userId);
+
+  return user;
+};
+
+const commentPost = async (parent: any) => {
+  const post = await findPostById(parent.postId);
+
+  return post;
 };
 
 export const commentResolvers = {
@@ -66,7 +74,7 @@ export const commentResolvers = {
     dislikeComment: dislikeComment,
   },
   Comment: {
-    user: (parent: any) => users.find((u) => u.id === parent.user),
-    post: (parent: any) => posts.find((p) => p.id === parent.post),
+    user: commentUser,
+    post: commentPost,
   },
 };

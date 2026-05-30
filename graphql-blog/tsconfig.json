@@ -8,5 +8,6 @@
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "types": ["node"]
-  }
+  },
+  "exclude": ["prisma.config.ts", "node_modules"]
 }

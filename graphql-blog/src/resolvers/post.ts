@@ -1,8 +1,16 @@
 import { GraphQLError } from "graphql";
-import { users, posts, comments } from "../data/index.js";
+import { findPostById, findPosts, createPost } from "../repository/post.js";
+import { findUserById } from "../repository/users.js";
+import { findCommentsOfPost } from "../repository/comments.js";
 
-const getPostById = (_: any, args: any) => {
-  const post = posts.find((p) => p.id === args.id);
+const getPosts = async (_: any, args: any) => {
+  const posts = await findPosts();
+
+  return posts;
+};
+
+const getPostById = async (_: any, args: any) => {
+  const post = await findPostById(args.id);
 
   if (!post) {
     throw new GraphQLError("post with id not found", {
@@ -13,8 +21,8 @@ const getPostById = (_: any, args: any) => {
   return post;
 };
 
-const addPost = (_: any, args: any) => {
-  const user = users.find((u) => u.id === args.userId);
+const addPost = async (_: any, args: any) => {
+  const user = await findUserById(args.userId);
 
   if (!user) {
     throw new GraphQLError("user not found", {
@@ -22,31 +30,33 @@ const addPost = (_: any, args: any) => {
     });
   }
 
-  const newPost = {
-    id: `p${String(posts.length + 1)}`,
-    text: args.text,
-    tags: args.tags,
-    user: args.userId,
-    comments: [],
-  };
-
-  posts.push(newPost);
-  user.posts.push(newPost.id);
+  const newPost = await createPost(args.text, args.userId, args.tags);
 
   return newPost;
 };
 
+const postUser = async (parent: any) => {
+  const user = await findUserById(parent.userId);
+
+  return user;
+};
+
+const postComments = async (parent: any) => {
+  const comments = await findCommentsOfPost(parent.id);
+
+  return comments;
+};
+
 export const postResolvers = {
   Query: {
-    posts: () => posts,
+    posts: getPosts,
     postById: getPostById,
   },
   Mutation: {
     addPost: addPost,
   },
   Post: {
-    user: (parent: any) => users.find((u) => u.id === parent.user),
-    comments: (parent: any) =>
-      parent.comments.map((cid: any) => comments.find((c) => c.id === cid)),
+    user: postUser,
+    comments: postComments,
   },
 };
