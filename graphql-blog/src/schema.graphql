@@ -22,6 +22,11 @@ type Comment {
   post: Post!
 }
 
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
 type Query {
   posts: [Post!]!
   postById(id: ID!): Post
@@ -30,9 +35,10 @@ type Query {
 }
 
 type Mutation {
-  addUser(username: String!, email: String): User!
-  addPost(text: String!, tags: [String!]!, userId: ID!): Post!
-  addComment(text: String!, userId: ID!, postId: ID!): Comment!
-  likeComment(id: ID!, userId: ID!): Comment!
-  dislikeComment(id: ID!, userId: ID!): Comment!
+  addPost(text: String!, tags: [String!]!): Post!
+  addComment(text: String!, postId: ID!): Comment!
+  likeComment(id: ID!): Comment!
+  dislikeComment(id: ID!): Comment!
+  register(username: String!, email: String, password: String!): AuthPayload!
+  login(username: String!, password: String!): AuthPayload!
 }

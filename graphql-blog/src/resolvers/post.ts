@@ -21,16 +21,14 @@ const getPostById = async (_: any, args: any) => {
   return post;
 };
 
-const addPost = async (_: any, args: any) => {
-  const user = await findUserById(args.userId);
-
-  if (!user) {
-    throw new GraphQLError("user not found", {
-      extensions: { code: "NOT_FOUND" },
+const addPost = async (_: any, args: any, context: any) => {
+  if (!context.user) {
+    throw new GraphQLError("user not authenticated", {
+      extensions: { code: "UNAUTHENTICATED" },
     });
   }
 
-  const newPost = await createPost(args.text, args.userId, args.tags);
+  const newPost = await createPost(args.text, context.user.id, args.tags);
 
   return newPost;
 };

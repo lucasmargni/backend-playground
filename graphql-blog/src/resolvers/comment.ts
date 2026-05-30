@@ -8,26 +8,37 @@ import {
 import { findUserById } from "../repository/users.js";
 import { findPostById } from "../repository/post.js";
 
-const addComment = async (_: any, args: any) => {
-  const user = await findUserById(args.userId);
+const addComment = async (_: any, args: any, context: any) => {
+  if (!context.user) {
+    throw new GraphQLError("user not authenticated", {
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+  }
+
   const post = await findPostById(args.postId);
 
-  if (!user) {
-    throw new GraphQLError("user not found", {
-      extensions: { code: "NOT_FOUND" },
-    });
-  } else if (!post) {
+  if (!post) {
     throw new GraphQLError("post not found", {
       extensions: { code: "NOT_FOUND" },
     });
   }
 
-  const newComment = await createComment(args.text, args.userId, args.postId);
+  const newComment = await createComment(
+    args.text,
+    context.user.id,
+    args.postId,
+  );
 
   return newComment;
 };
 
-const likeComment = async (_: any, args: any) => {
+const likeComment = async (_: any, args: any, context: any) => {
+  if (!context.user) {
+    throw new GraphQLError("user not authenticated", {
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+  }
+
   const comment = await findCommentById(args.id);
 
   if (!comment) {
@@ -41,7 +52,13 @@ const likeComment = async (_: any, args: any) => {
   return updatedComment;
 };
 
-const dislikeComment = async (_: any, args: any) => {
+const dislikeComment = async (_: any, args: any, context: any) => {
+  if (!context.user) {
+    throw new GraphQLError("user not authenticated", {
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+  }
+
   const comment = await findCommentById(args.id);
 
   if (!comment) {
