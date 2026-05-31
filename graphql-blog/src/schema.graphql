@@ -27,8 +27,23 @@ type AuthPayload {
   user: User!
 }
 
+type PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type PostEdge {
+  node: Post!
+  cursor: String!
+}
+
+type PostConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+}
+
 type Query {
-  posts(userId: ID, tag: String): [Post!]!
+  posts(first: Int, after: String, userId: ID, tag: String): PostConnection!
   postById(id: ID!): Post
   userById(id: ID!): User
   userByUsername(username: String!): User

@@ -3,7 +3,12 @@ import { findPostById, findPosts, createPost } from "../repository/post.js";
 import { findCommentsOfPost } from "../repository/comments.js";
 
 const getPosts = async (_: any, args: any) => {
-  const posts = await findPosts(args.userId, args.tag);
+  const posts = await findPosts({
+    first: args.first,
+    after: args.after,
+    userId: args.userId,
+    tag: args.tag,
+  });
 
   return posts;
 };

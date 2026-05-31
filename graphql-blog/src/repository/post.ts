@@ -6,15 +6,47 @@ export const findPostById = async (id: string) => {
   return post;
 };
 
-export const findPosts = async (userId?: string, tag?: string) => {
+export const findPosts = async ({
+  first,
+  after,
+  userId,
+  tag,
+}: {
+  first?: number;
+  after?: string;
+  userId?: string;
+  tag?: string;
+} = {}) => {
+  const idCursor = after ? Buffer.from(after, "base64").toString("utf-8") : "";
+
   const posts = await prisma.post.findMany({
     where: {
       ...(userId && { userId }),
       ...(tag && { tags: { has: tag } }),
     },
+    ...(first && { take: first + 1 }),
+    ...(idCursor && { cursor: { id: idCursor }, skip: 1 }),
+    orderBy: { createdAt: "asc" },
   });
 
-  return posts;
+  const hasNextPage = first ? posts.length > first : false;
+
+  const pagePosts = hasNextPage ? posts.slice(0, first) : posts;
+
+  const edges = pagePosts.map((p) => ({
+    node: p,
+    cursor: Buffer.from(p.id).toString("base64"),
+  }));
+
+  const endCursor = edges.length > 0 ? edges[edges.length - 1].cursor : null;
+
+  return {
+    edges,
+    pageInfo: {
+      hasNextPage,
+      endCursor,
+    },
+  };
 };
 
 export const findPostsOfUser = async (userId: string) => {
