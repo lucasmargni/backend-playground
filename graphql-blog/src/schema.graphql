@@ -28,7 +28,7 @@ type AuthPayload {
 }
 
 type Query {
-  posts: [Post!]!
+  posts(userId: ID, tag: String): [Post!]!
   postById(id: ID!): Post
   userById(id: ID!): User
   userByUsername(username: String!): User

@@ -6,8 +6,13 @@ export const findPostById = async (id: string) => {
   return post;
 };
 
-export const findPosts = async () => {
-  const posts = await prisma.post.findMany();
+export const findPosts = async (userId?: string, tag?: string) => {
+  const posts = await prisma.post.findMany({
+    where: {
+      ...(userId && { userId }),
+      ...(tag && { tags: { has: tag } }),
+    },
+  });
 
   return posts;
 };

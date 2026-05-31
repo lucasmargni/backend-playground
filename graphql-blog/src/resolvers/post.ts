@@ -1,10 +1,9 @@
 import { GraphQLError } from "graphql";
 import { findPostById, findPosts, createPost } from "../repository/post.js";
-import { findUserById } from "../repository/users.js";
 import { findCommentsOfPost } from "../repository/comments.js";
 
 const getPosts = async (_: any, args: any) => {
-  const posts = await findPosts();
+  const posts = await findPosts(args.userId, args.tag);
 
   return posts;
 };

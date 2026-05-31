@@ -1,6 +1,5 @@
 import { GraphQLError } from "graphql";
 import { findUserById, findUserByUsername } from "../repository/users.js";
-import { findPostsOfUser } from "../repository/post.js";
 
 const getUserById = async (_: any, args: any) => {
   const user = await findUserById(args.id);
