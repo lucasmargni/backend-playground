@@ -26,8 +26,8 @@ const getUserByUsername = async (_: any, args: any) => {
   return user;
 };
 
-const userPosts = async (parent: any) => {
-  const posts = await findPostsOfUser(parent.id);
+const userPosts = async (parent: any, _: any, context: any) => {
+  const posts = context.loaders.userPosts.load(parent.id);
 
   return posts;
 };

@@ -33,8 +33,8 @@ const addPost = async (_: any, args: any, context: any) => {
   return newPost;
 };
 
-const postUser = async (parent: any) => {
-  const user = await findUserById(parent.userId);
+const postUser = async (parent: any, _: any, context: any) => {
+  const user = context.loaders.user.load(parent.userId);
 
   return user;
 };

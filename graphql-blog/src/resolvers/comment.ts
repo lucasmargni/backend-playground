@@ -72,14 +72,14 @@ const dislikeComment = async (_: any, args: any, context: any) => {
   return updatedComment;
 };
 
-const commentUser = async (parent: any) => {
-  const user = await findUserById(parent.userId);
+const commentUser = async (parent: any, _: any, context: any) => {
+  const user = context.loaders.user.load(parent.userId);
 
   return user;
 };
 
-const commentPost = async (parent: any) => {
-  const post = await findPostById(parent.postId);
+const commentPost = async (parent: any, _: any, context: any) => {
+  const post = context.loaders.post.load(parent.postId);
 
   return post;
 };
