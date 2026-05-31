@@ -9,5 +9,5 @@
     "esModuleInterop": true,
     "types": ["node"]
   },
-  "exclude": ["prisma.config.ts", "node_modules"]
+  "exclude": ["prisma.config.ts", "prisma/seed.ts", "node_modules"]
 }
