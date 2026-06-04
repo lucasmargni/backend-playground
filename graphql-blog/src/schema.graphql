@@ -1,0 +1,59 @@
+type User {
+  id: ID!
+  username: String!
+  email: String
+  posts: [Post!]!
+}
+
+type Post {
+  id: ID!
+  text: String!
+  tags: [String!]!
+  user: User!
+  comments: [Comment!]!
+}
+
+type Comment {
+  id: ID!
+  text: String!
+  likes: Int!
+  dislikes: Int!
+  user: User!
+  post: Post!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type PostEdge {
+  node: Post!
+  cursor: String!
+}
+
+type PostConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  posts(first: Int, after: String, userId: ID, tag: String): PostConnection!
+  postById(id: ID!): Post
+  userById(id: ID!): User
+  userByUsername(username: String!): User
+}
+
+type Mutation {
+  addPost(text: String!, tags: [String!]!): Post!
+  addComment(text: String!, postId: ID!): Comment!
+  likeComment(id: ID!): Comment!
+  dislikeComment(id: ID!): Comment!
+  register(username: String!, email: String, password: String!): AuthPayload!
+  login(username: String!, password: String!): AuthPayload!
+}

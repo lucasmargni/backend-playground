@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: taskmanager
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskmanager-network
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - taskmanager-network
+  user-service:
+    build: ./user-service
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: "postgresql://admin:admin123@postgres:5432/users_db"
+      JWT_SECRET: "${JWT_SECRET}"
+      PORT: 3001
+    depends_on:
+      - postgres
+    networks:
+      - taskmanager-network
+
+volumes:
+  postgres_data:
+
+networks:
+  taskmanager-network:
+    driver: bridge
