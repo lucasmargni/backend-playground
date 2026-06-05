@@ -7,24 +7,28 @@ import {
   Param,
   Body,
   NotFoundException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { MythsService } from './myths.service';
 import { Myth } from './myth.entity';
 import { CreateMythDto } from './dto/create-myth.dto';
 import { UpdateMythDto } from './dto/update-myth.dto';
 import { Public } from '../../common/decorators/public.decorator';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('myths')
 export class MythsController {
   constructor(private readonly mythsService: MythsService) {}
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get()
   async findAll(): Promise<Myth[]> {
     return this.mythsService.findAll();
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Myth> {
     const myth = await this.mythsService.findOne(id);

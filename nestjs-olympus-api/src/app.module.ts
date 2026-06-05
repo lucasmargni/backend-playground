@@ -1,16 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import appConfig from './config/app.config';
-import databaseConfig, { DatabaseConfig } from './config/database.config';
-import { GodsModule } from './modules/gods/gods.module';
-import { TitansModule } from './modules/titans/titans.module';
-import { BeingsModule } from './modules/beings/beings.module';
-import { MythsModule } from './modules/myths/myths.module';
+import { CacheModule } from '@nestjs/cache-manager';
 import { APP_GUARD } from '@nestjs/core';
-import { ApiKeyGuard } from './common/guards/api-key.guard';
+import KeyvRedis from '@keyv/redis';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+import appConfig, { AppConfig } from './config/app.config.js';
+import databaseConfig, { DatabaseConfig } from './config/database.config.js';
+import { GodsModule } from './modules/gods/gods.module.js';
+import { TitansModule } from './modules/titans/titans.module.js';
+import { MythsModule } from './modules/myths/myths.module.js';
+import { BeingsModule } from './modules/beings/beings.module.js';
+import { ApiKeyGuard } from './common/guards/api-key.guard.js';
 
 @Module({
   imports: [
@@ -31,10 +33,21 @@ import { ApiKeyGuard } from './common/guards/api-key.guard';
         };
       },
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const { redisUrl } = configService.get<AppConfig>('app')!;
+        return {
+          stores: [new KeyvRedis(redisUrl)],
+          ttl: 60000,
+        };
+      },
+    }),
     GodsModule,
     TitansModule,
-    BeingsModule,
     MythsModule,
+    BeingsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ApiKeyGuard }],

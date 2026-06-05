@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   NotFoundException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GodsService } from './gods.service';
 import { God } from './god.entity';
@@ -15,18 +16,21 @@ import { UpdateGodDto } from './dto/update-god.dto';
 import { MythologicalBeing } from '../beings/being.entity';
 import { Myth } from '../myths/myth.entity';
 import { Public } from '../../common/decorators/public.decorator';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('gods')
 export class GodsController {
   constructor(private readonly godsService: GodsService) {}
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get()
   async findAll(): Promise<God[]> {
     return this.godsService.findAll();
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<God> {
     const god = await this.godsService.findOne(id);
@@ -39,6 +43,7 @@ export class GodsController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':id/parents')
   async findParents(@Param('id') id: string): Promise<MythologicalBeing[]> {
     const parents = await this.godsService.findParents(id);
@@ -51,6 +56,7 @@ export class GodsController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':id/children')
   async findChildren(@Param('id') id: string): Promise<MythologicalBeing[]> {
     const children = await this.godsService.findChildren(id);
@@ -63,6 +69,7 @@ export class GodsController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':id/myths')
   async findMyths(@Param('id') id: string): Promise<Myth[]> {
     const myths = await this.godsService.findMyths(id);
