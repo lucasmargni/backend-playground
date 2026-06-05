@@ -12,6 +12,8 @@ import { GodsService } from './gods.service';
 import { God } from './god.entity';
 import { CreateGodDto } from './dto/create-god.dto';
 import { UpdateGodDto } from './dto/update-god.dto';
+import { MythologicalBeing } from '../beings/being.entity';
+import { Myth } from '../myths/myth.entity';
 
 @Controller('gods')
 export class GodsController {
@@ -31,6 +33,39 @@ export class GodsController {
     }
 
     return god;
+  }
+
+  @Get(':id/parents')
+  async findParents(@Param('id') id: string): Promise<MythologicalBeing[]> {
+    const parents = await this.godsService.findParents(id);
+
+    if (parents == null) {
+      throw new NotFoundException(`God with id ${id} not found`);
+    }
+
+    return parents;
+  }
+
+  @Get(':id/children')
+  async findChildren(@Param('id') id: string): Promise<MythologicalBeing[]> {
+    const children = await this.godsService.findChildren(id);
+
+    if (children == null) {
+      throw new NotFoundException(`God with id ${id} not found`);
+    }
+
+    return children;
+  }
+
+  @Get(':id/myths')
+  async findMyths(@Param('id') id: string): Promise<Myth[]> {
+    const myths = await this.godsService.findMyths(id);
+
+    if (myths == null) {
+      throw new NotFoundException(`God with id ${id} not found`);
+    }
+
+    return myths;
   }
 
   @Post()

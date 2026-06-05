@@ -4,6 +4,8 @@ import { God } from './god.entity';
 import { Repository } from 'typeorm';
 import { CreateGodDto } from './dto/create-god.dto';
 import { UpdateGodDto } from './dto/update-god.dto';
+import { MythologicalBeing } from '../beings/being.entity';
+import { Myth } from '../myths/myth.entity';
 
 @Injectable()
 export class GodsService {
@@ -18,6 +20,45 @@ export class GodsService {
 
   findOne(id: string): Promise<God | null> {
     return this.godRepository.findOneBy({ id });
+  }
+
+  async findParents(id: string): Promise<MythologicalBeing[] | null> {
+    const god = await this.godRepository.findOne({
+      where: { id },
+      relations: { parents: true },
+    });
+
+    if (!god) {
+      return null;
+    }
+
+    return god.parents;
+  }
+
+  async findChildren(id: string): Promise<MythologicalBeing[] | null> {
+    const god = await this.godRepository.findOne({
+      where: { id },
+      relations: { children: true },
+    });
+
+    if (!god) {
+      return null;
+    }
+
+    return god.children;
+  }
+
+  async findMyths(id: string): Promise<Myth[] | null> {
+    const god = await this.godRepository.findOne({
+      where: { id },
+      relations: { myths: true },
+    });
+
+    if (!god) {
+      return null;
+    }
+
+    return god.myths;
   }
 
   create(dto: CreateGodDto): Promise<God> {
