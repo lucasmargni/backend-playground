@@ -14,16 +14,19 @@ import { CreateGodDto } from './dto/create-god.dto';
 import { UpdateGodDto } from './dto/update-god.dto';
 import { MythologicalBeing } from '../beings/being.entity';
 import { Myth } from '../myths/myth.entity';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('gods')
 export class GodsController {
   constructor(private readonly godsService: GodsService) {}
 
+  @Public()
   @Get()
   async findAll(): Promise<God[]> {
     return this.godsService.findAll();
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<God> {
     const god = await this.godsService.findOne(id);
@@ -35,6 +38,7 @@ export class GodsController {
     return god;
   }
 
+  @Public()
   @Get(':id/parents')
   async findParents(@Param('id') id: string): Promise<MythologicalBeing[]> {
     const parents = await this.godsService.findParents(id);
@@ -46,6 +50,7 @@ export class GodsController {
     return parents;
   }
 
+  @Public()
   @Get(':id/children')
   async findChildren(@Param('id') id: string): Promise<MythologicalBeing[]> {
     const children = await this.godsService.findChildren(id);
@@ -57,6 +62,7 @@ export class GodsController {
     return children;
   }
 
+  @Public()
   @Get(':id/myths')
   async findMyths(@Param('id') id: string): Promise<Myth[]> {
     const myths = await this.godsService.findMyths(id);

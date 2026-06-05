@@ -9,6 +9,8 @@ import { GodsModule } from './modules/gods/gods.module';
 import { TitansModule } from './modules/titans/titans.module';
 import { BeingsModule } from './modules/beings/beings.module';
 import { MythsModule } from './modules/myths/myths.module';
+import { APP_GUARD } from '@nestjs/core';
+import { ApiKeyGuard } from './common/guards/api-key.guard';
 
 @Module({
   imports: [
@@ -35,6 +37,6 @@ import { MythsModule } from './modules/myths/myths.module';
     MythsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ApiKeyGuard }],
 })
 export class AppModule {}

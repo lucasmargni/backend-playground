@@ -12,16 +12,19 @@ import { MythsService } from './myths.service';
 import { Myth } from './myth.entity';
 import { CreateMythDto } from './dto/create-myth.dto';
 import { UpdateMythDto } from './dto/update-myth.dto';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('myths')
 export class MythsController {
   constructor(private readonly mythsService: MythsService) {}
 
+  @Public()
   @Get()
   async findAll(): Promise<Myth[]> {
     return this.mythsService.findAll();
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Myth> {
     const myth = await this.mythsService.findOne(id);
