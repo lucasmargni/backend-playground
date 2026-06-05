@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import appConfig from './config/app.config';
 import databaseConfig, { DatabaseConfig } from './config/database.config';
+import { GodsModule } from './modules/gods/gods.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import databaseConfig, { DatabaseConfig } from './config/database.config';
         };
       },
     }),
+    GodsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
