@@ -8,6 +8,7 @@ import {
   TableInheritance,
   UpdateDateColumn,
 } from 'typeorm';
+import { Myth } from '../myths/myth.entity';
 
 @Entity('beings')
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
@@ -37,6 +38,9 @@ export abstract class MythologicalBeing {
 
   @ManyToMany(() => MythologicalBeing, (being) => being.parents)
   children!: MythologicalBeing[];
+
+  @ManyToMany(() => Myth, (myth) => myth.characters)
+  myths!: Myth[];
 
   @CreateDateColumn()
   createdAt!: Date;
