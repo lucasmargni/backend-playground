@@ -1,10 +1,5 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { ChildEntity, Column } from 'typeorm';
+import { MythologicalBeing } from '../beings/being.entity';
 
 export enum GodDomain {
   SKY = 'sky',
@@ -21,29 +16,8 @@ export enum GodDomain {
   MESSENGER = 'messenger',
 }
 
-@Entity('gods')
-export class God {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
-
-  @Column({ unique: true })
-  name!: string;
-
+@ChildEntity('gods')
+export class God extends MythologicalBeing {
   @Column({ type: 'enum', enum: GodDomain })
   domain!: GodDomain;
-
-  @Column({ type: 'text' })
-  description!: string;
-
-  @Column({ type: 'varchar', nullable: true })
-  symbol!: string | null;
-
-  @Column({ type: 'varchar', nullable: true })
-  romanName!: string | null;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
 }

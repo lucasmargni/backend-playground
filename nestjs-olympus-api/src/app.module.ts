@@ -7,6 +7,7 @@ import appConfig from './config/app.config';
 import databaseConfig, { DatabaseConfig } from './config/database.config';
 import { GodsModule } from './modules/gods/gods.module';
 import { TitansModule } from './modules/titans/titans.module';
+import { BeingsModule } from './modules/beings/beings.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TitansModule } from './modules/titans/titans.module';
     }),
     GodsModule,
     TitansModule,
+    BeingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
