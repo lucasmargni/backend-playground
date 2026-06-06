@@ -13,6 +13,7 @@ import { TitansModule } from './modules/titans/titans.module.js';
 import { MythsModule } from './modules/myths/myths.module.js';
 import { BeingsModule } from './modules/beings/beings.module.js';
 import { ApiKeyGuard } from './common/guards/api-key.guard.js';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ApiKeyGuard } from './common/guards/api-key.guard.js';
     TitansModule,
     MythsModule,
     BeingsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ApiKeyGuard }],
