@@ -91,6 +91,14 @@ export class GodsController {
     return this.godsService.create(dto);
   }
 
+  @Post(':id/parents/:parentId')
+  async addParent(
+    @Param('id') id: string,
+    @Param('parentId') parentId: string,
+  ): Promise<God> {
+    return this.godsService.addParent(id, parentId);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -114,5 +122,13 @@ export class GodsController {
     }
 
     return this.godsService.remove(id);
+  }
+
+  @Delete(':id/parents/:parentId')
+  async removeParent(
+    @Param('id') id: string,
+    @Param('parentId') parentId: string,
+  ): Promise<God> {
+    return this.godsService.removeParent(id, parentId);
   }
 }

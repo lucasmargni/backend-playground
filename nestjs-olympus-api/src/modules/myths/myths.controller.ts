@@ -50,6 +50,14 @@ export class MythsController {
     return this.mythsService.create(dto);
   }
 
+  @Post(':id/characters/:charId')
+  async addCharacter(
+    @Param('id') id: string,
+    @Param('charId') charId: string,
+  ): Promise<Myth> {
+    return this.mythsService.addCharacter(id, charId);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -73,5 +81,13 @@ export class MythsController {
     }
 
     return this.mythsService.remove(id);
+  }
+
+  @Delete(':id/characters/:charId')
+  async removeCharacter(
+    @Param('id') id: string,
+    @Param('charId') charId: string,
+  ): Promise<Myth> {
+    return this.mythsService.removeCharacter(id, charId);
   }
 }

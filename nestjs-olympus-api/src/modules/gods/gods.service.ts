@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { God } from './god.entity';
 import { Repository } from 'typeorm';
@@ -14,6 +14,8 @@ export class GodsService {
   constructor(
     @InjectRepository(God)
     private readonly godRepository: Repository<God>,
+    @InjectRepository(MythologicalBeing)
+    private readonly beingRepository: Repository<MythologicalBeing>,
   ) {}
 
   async findAll(pagination: PaginateDto): Promise<PaginatedResponse<God>> {
@@ -75,6 +77,29 @@ export class GodsService {
     return this.godRepository.save(newGod);
   }
 
+  async addParent(id: string, parentId: string): Promise<God> {
+    const god = await this.godRepository.findOne({
+      where: { id },
+      relations: { parents: true },
+    });
+
+    if (!god) {
+      throw new NotFoundException(`God with id ${id} not found`);
+    }
+
+    const parent = await this.beingRepository.findOneBy({ id: parentId });
+
+    if (!parent) {
+      throw new NotFoundException(`Being with id ${parentId} not found`);
+    }
+
+    god.parents.push(parent);
+
+    await this.godRepository.save(god);
+
+    return god;
+  }
+
   async update(id: string, dto: UpdateGodDto): Promise<God | null> {
     await this.godRepository.update(id, dto);
     return this.findOne(id);
@@ -82,5 +107,28 @@ export class GodsService {
 
   async remove(id: string): Promise<void> {
     await this.godRepository.delete(id);
+  }
+
+  async removeParent(id: string, parentId: string): Promise<God> {
+    const god = await this.godRepository.findOne({
+      where: { id },
+      relations: { parents: true },
+    });
+
+    if (!god) {
+      throw new NotFoundException(`God with id ${id} not found`);
+    }
+
+    const parent = await this.beingRepository.findOneBy({ id: parentId });
+
+    if (!parent) {
+      throw new NotFoundException(`Being with id ${parentId} not found`);
+    }
+
+    god.parents = god.parents.filter((p) => p.id !== parentId);
+
+    await this.godRepository.save(god);
+
+    return god;
   }
 }
