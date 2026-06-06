@@ -4,6 +4,8 @@ import { Myth } from './myth.entity';
 import { Repository } from 'typeorm';
 import { CreateMythDto } from './dto/create-myth.dto';
 import { UpdateMythDto } from './dto/update-myth.dto';
+import { PaginateDto } from '../../common/dto/pagination.dto';
+import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 
 @Injectable()
 export class MythsService {
@@ -12,8 +14,15 @@ export class MythsService {
     private readonly mythRepository: Repository<Myth>,
   ) {}
 
-  findAll(): Promise<Myth[]> {
-    return this.mythRepository.find({ relations: { characters: true } });
+  async findAll(pagination: PaginateDto): Promise<PaginatedResponse<Myth>> {
+    const { page, limit } = pagination;
+
+    const [data, total] = await this.mythRepository.findAndCount({
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   findOne(id: string): Promise<Myth | null> {

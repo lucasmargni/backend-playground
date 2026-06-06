@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTitanDto } from './dto/create-titan.dto';
 import { UpdateTitanDto } from './dto/update-titan.dto';
+import { PaginateDto } from '../../common/dto/pagination.dto';
+import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 
 @Injectable()
 export class TitansService {
@@ -12,8 +14,15 @@ export class TitansService {
     private readonly titanRepository: Repository<Titan>,
   ) {}
 
-  findAll(): Promise<Titan[]> {
-    return this.titanRepository.find();
+  async findAll(pagination: PaginateDto): Promise<PaginatedResponse<Titan>> {
+    const { page, limit } = pagination;
+
+    const [data, total] = await this.titanRepository.findAndCount({
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   findOne(id: string): Promise<Titan | null> {

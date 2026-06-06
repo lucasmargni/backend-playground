@@ -6,6 +6,8 @@ import { CreateGodDto } from './dto/create-god.dto';
 import { UpdateGodDto } from './dto/update-god.dto';
 import { MythologicalBeing } from '../beings/being.entity';
 import { Myth } from '../myths/myth.entity';
+import { PaginateDto } from '../../common/dto/pagination.dto';
+import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 
 @Injectable()
 export class GodsService {
@@ -14,8 +16,15 @@ export class GodsService {
     private readonly godRepository: Repository<God>,
   ) {}
 
-  findAll(): Promise<God[]> {
-    return this.godRepository.find();
+  async findAll(pagination: PaginateDto): Promise<PaginatedResponse<God>> {
+    const { page, limit } = pagination;
+
+    const [data, total] = await this.godRepository.findAndCount({
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   findOne(id: string): Promise<God | null> {

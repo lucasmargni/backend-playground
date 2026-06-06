@@ -8,6 +8,7 @@ import {
   Body,
   NotFoundException,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { GodsService } from './gods.service';
 import { God } from './god.entity';
@@ -17,6 +18,8 @@ import { MythologicalBeing } from '../beings/being.entity';
 import { Myth } from '../myths/myth.entity';
 import { Public } from '../../common/decorators/public.decorator';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { PaginateDto } from '../../common/dto/pagination.dto';
+import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 
 @Controller('gods')
 export class GodsController {
@@ -25,8 +28,10 @@ export class GodsController {
   @Public()
   @UseInterceptors(CacheInterceptor)
   @Get()
-  async findAll(): Promise<God[]> {
-    return this.godsService.findAll();
+  async findAll(
+    @Query() pagination: PaginateDto,
+  ): Promise<PaginatedResponse<God>> {
+    return this.godsService.findAll(pagination);
   }
 
   @Public()

@@ -8,6 +8,7 @@ import {
   Body,
   NotFoundException,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { TitansService } from './titans.service';
 import { Titan } from './titan.entity';
@@ -15,6 +16,8 @@ import { CreateTitanDto } from './dto/create-titan.dto';
 import { UpdateTitanDto } from './dto/update-titan.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { PaginateDto } from '../../common/dto/pagination.dto';
+import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 
 @Controller('titans')
 export class TitansController {
@@ -23,8 +26,10 @@ export class TitansController {
   @Public()
   @UseInterceptors(CacheInterceptor)
   @Get()
-  async findAll(): Promise<Titan[]> {
-    return this.titansService.findAll();
+  async findAll(
+    @Query() pagination: PaginateDto,
+  ): Promise<PaginatedResponse<Titan>> {
+    return this.titansService.findAll(pagination);
   }
 
   @Public()

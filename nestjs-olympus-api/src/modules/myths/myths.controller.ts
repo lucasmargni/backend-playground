@@ -8,6 +8,7 @@ import {
   Body,
   NotFoundException,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { MythsService } from './myths.service';
 import { Myth } from './myth.entity';
@@ -15,6 +16,8 @@ import { CreateMythDto } from './dto/create-myth.dto';
 import { UpdateMythDto } from './dto/update-myth.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { PaginateDto } from '../../common/dto/pagination.dto';
+import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
 
 @Controller('myths')
 export class MythsController {
@@ -23,8 +26,10 @@ export class MythsController {
   @Public()
   @UseInterceptors(CacheInterceptor)
   @Get()
-  async findAll(): Promise<Myth[]> {
-    return this.mythsService.findAll();
+  async findAll(
+    @Query() pagination: PaginateDto,
+  ): Promise<PaginatedResponse<Myth>> {
+    return this.mythsService.findAll(pagination);
   }
 
   @Public()
