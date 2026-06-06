@@ -20,13 +20,22 @@ import { Public } from '../../common/decorators/public.decorator';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { PaginateDto } from '../../common/dto/pagination.dto';
 import { PaginatedResponse } from '../../common/interfaces/paginated-response.interface';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @Controller('gods')
+@ApiTags('Gods')
 export class GodsController {
   constructor(private readonly godsService: GodsService) {}
 
   @Public()
   @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'finds all gods in the database' })
+  @ApiResponse({ status: 200, description: 'Gods found' })
   @Get()
   async findAll(
     @Query() pagination: PaginateDto,
@@ -36,6 +45,9 @@ export class GodsController {
 
   @Public()
   @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'finds a god by id' })
+  @ApiResponse({ status: 200, description: 'God found' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<God> {
     const god = await this.godsService.findOne(id);
@@ -49,6 +61,9 @@ export class GodsController {
 
   @Public()
   @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'finds all parents of a god by id' })
+  @ApiResponse({ status: 200, description: 'God found' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Get(':id/parents')
   async findParents(@Param('id') id: string): Promise<MythologicalBeing[]> {
     const parents = await this.godsService.findParents(id);
@@ -62,6 +77,9 @@ export class GodsController {
 
   @Public()
   @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'finds all children of a god by id' })
+  @ApiResponse({ status: 200, description: 'God found' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Get(':id/children')
   async findChildren(@Param('id') id: string): Promise<MythologicalBeing[]> {
     const children = await this.godsService.findChildren(id);
@@ -75,6 +93,9 @@ export class GodsController {
 
   @Public()
   @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'finds all myths of a god by id' })
+  @ApiResponse({ status: 200, description: 'God found' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Get(':id/myths')
   async findMyths(@Param('id') id: string): Promise<Myth[]> {
     const myths = await this.godsService.findMyths(id);
@@ -86,11 +107,18 @@ export class GodsController {
     return myths;
   }
 
+  @ApiOperation({ summary: 'creates a new god' })
+  @ApiBearerAuth('x-api-key')
+  @ApiResponse({ status: 201, description: 'God created' })
   @Post()
   async create(@Body() dto: CreateGodDto): Promise<God> {
     return this.godsService.create(dto);
   }
 
+  @ApiOperation({ summary: 'adds a parent to a god by id' })
+  @ApiBearerAuth('x-api-key')
+  @ApiResponse({ status: 201, description: 'God created' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Post(':id/parents/:parentId')
   async addParent(
     @Param('id') id: string,
@@ -99,6 +127,10 @@ export class GodsController {
     return this.godsService.addParent(id, parentId);
   }
 
+  @ApiOperation({ summary: 'updates fields of a god by id' })
+  @ApiBearerAuth('x-api-key')
+  @ApiResponse({ status: 200, description: 'God updated' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -113,6 +145,10 @@ export class GodsController {
     return this.godsService.update(id, dto);
   }
 
+  @ApiOperation({ summary: 'removes a god by id' })
+  @ApiBearerAuth('x-api-key')
+  @ApiResponse({ status: 200, description: 'God deleted' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     const god = await this.godsService.findOne(id);
@@ -124,6 +160,10 @@ export class GodsController {
     return this.godsService.remove(id);
   }
 
+  @ApiOperation({ summary: 'removes a parent to a god by id' })
+  @ApiBearerAuth('x-api-key')
+  @ApiResponse({ status: 200, description: 'God found' })
+  @ApiResponse({ status: 404, description: 'God not found' })
   @Delete(':id/parents/:parentId')
   async removeParent(
     @Param('id') id: string,
