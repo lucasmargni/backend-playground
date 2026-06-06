@@ -1,98 +1,290 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Olympus API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A REST API about Greek mythology built with NestJS, TypeORM, and PostgreSQL. Includes authentication with API Keys, Redis caching, full-text search, and pagination.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Node.js** + **TypeScript**
+- **NestJS** — backend framework
+- **TypeORM** — ORM and entity management
+- **PostgreSQL** — relational database (hosted on [Neon](https://neon.tech))
+- **Redis** — response caching (hosted on [Upstash](https://upstash.com))
+- **API Keys** — authentication via custom Guard
+- **Swagger / OpenAPI** — auto-generated API documentation
 
-## Project setup
+---
 
-```bash
-$ npm install
+## Features
+
+- Full CRUD for Gods, Titans, and Myths
+- Single Table Inheritance — Gods and Titans share a `MythologicalBeing` base entity
+- Family tree relationships — beings can have multiple parents and children
+- Many-to-many relationships between Myths and MythologicalBeings
+- API Key authentication protecting all write endpoints
+- Redis caching on all read endpoints
+- Full-text search across gods, titans, and myths with optional type filter
+- Pagination on all list endpoints
+- Auto-generated Swagger documentation at `/docs`
+
+---
+
+## Project Structure
+
+```
+nestjs-olympus-api/
+├── src/
+│   ├── common/
+│   │   ├── decorators/
+│   │   │   └── public.decorator.ts     # @Public() decorator for open endpoints
+│   │   ├── dto/
+│   │   │   └── pagination.dto.ts       # Shared pagination DTO
+│   │   ├── guards/
+│   │   │   └── api-key.guard.ts        # API Key authentication guard
+│   │   └── interfaces/
+│   │       └── paginated-response.interface.ts
+│   ├── config/
+│   │   ├── app.config.ts               # App and auth configuration
+│   │   └── database.config.ts          # Database configuration
+│   ├── modules/
+│   │   ├── beings/
+│   │   │   └── being.entity.ts         # Base entity with STI
+│   │   ├── gods/
+│   │   │   ├── dto/
+│   │   │   ├── god.entity.ts
+│   │   │   ├── gods.controller.ts
+│   │   │   ├── gods.service.ts
+│   │   │   └── gods.module.ts
+│   │   ├── titans/
+│   │   │   ├── dto/
+│   │   │   ├── titan.entity.ts
+│   │   │   ├── titans.controller.ts
+│   │   │   ├── titans.service.ts
+│   │   │   └── titans.module.ts
+│   │   ├── myths/
+│   │   │   ├── dto/
+│   │   │   ├── myth.entity.ts
+│   │   │   ├── myths.controller.ts
+│   │   │   ├── myths.service.ts
+│   │   │   └── myths.module.ts
+│   │   └── search/
+│   │       ├── dto/
+│   │       ├── search.controller.ts
+│   │       ├── search.service.ts
+│   │       └── search.module.ts
+│   ├── app.module.ts
+│   └── main.ts
+├── .env                                # Environment variables (not committed)
+├── .env.example                        # Environment variables template
+└── package.json
 ```
 
-## Compile and run the project
+---
+
+## Getting Started
+
+### Requirements
+
+- Node.js 20+
+- A PostgreSQL database ([Neon](https://neon.tech) recommended)
+- A Redis instance ([Upstash](https://upstash.com) recommended)
+
+### Installation
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### Environment Variables
+
+Copy `.env.example` to `.env` and fill in the values:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Running the Server
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev     # development with watch mode
+npm run start:prod    # production
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+The server will be available at `http://localhost:3000`.
+Swagger documentation is available at `http://localhost:3000/docs`.
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## Environment Variables
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+See `.env.example` for reference:
 
-## Support
+| Variable       | Description                                 |
+| -------------- | ------------------------------------------- |
+| `PORT`         | Port the server runs on (default: 3000)     |
+| `NODE_ENV`     | Environment (`development` or `production`) |
+| `DATABASE_URL` | PostgreSQL connection string                |
+| `API_KEY`      | Secret key required for write endpoints     |
+| `REDIS_URL`    | Redis connection string (`rediss://...`)    |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## Authentication
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Write endpoints (`POST`, `PATCH`, `DELETE`) require an API Key sent in the request header:
 
-## License
+```
+x-api-key: your-api-key
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Read endpoints (`GET`) are public and require no authentication.
+
+---
+
+## API Reference
+
+Full interactive documentation is available at `http://localhost:3000/docs`.
+
+### Gods
+
+| Method | Endpoint                      | Auth | Description                |
+| ------ | ----------------------------- | ---- | -------------------------- |
+| GET    | `/gods`                       | ❌   | List all gods (paginated)  |
+| GET    | `/gods/:id`                   | ❌   | Get a god by ID            |
+| GET    | `/gods/:id/parents`           | ❌   | Get parents of a god       |
+| GET    | `/gods/:id/children`          | ❌   | Get children of a god      |
+| GET    | `/gods/:id/myths`             | ❌   | Get myths featuring a god  |
+| POST   | `/gods`                       | ✅   | Create a god               |
+| POST   | `/gods/:id/parents/:parentId` | ✅   | Add a parent to a god      |
+| PATCH  | `/gods/:id`                   | ✅   | Update a god               |
+| DELETE | `/gods/:id`                   | ✅   | Delete a god               |
+| DELETE | `/gods/:id/parents/:parentId` | ✅   | Remove a parent from a god |
+
+### Titans
+
+| Method | Endpoint      | Auth | Description                 |
+| ------ | ------------- | ---- | --------------------------- |
+| GET    | `/titans`     | ❌   | List all titans (paginated) |
+| GET    | `/titans/:id` | ❌   | Get a titan by ID           |
+| POST   | `/titans`     | ✅   | Create a titan              |
+| PATCH  | `/titans/:id` | ✅   | Update a titan              |
+| DELETE | `/titans/:id` | ✅   | Delete a titan              |
+
+### Myths
+
+| Method | Endpoint                         | Auth | Description                    |
+| ------ | -------------------------------- | ---- | ------------------------------ |
+| GET    | `/myths`                         | ❌   | List all myths (paginated)     |
+| GET    | `/myths/:id`                     | ❌   | Get a myth by ID               |
+| POST   | `/myths`                         | ✅   | Create a myth                  |
+| POST   | `/myths/:id/characters/:beingId` | ✅   | Add a character to a myth      |
+| PATCH  | `/myths/:id`                     | ✅   | Update a myth                  |
+| DELETE | `/myths/:id`                     | ✅   | Delete a myth                  |
+| DELETE | `/myths/:id/characters/:beingId` | ✅   | Remove a character from a myth |
+
+### Search
+
+| Method | Endpoint                  | Auth | Description                 |
+| ------ | ------------------------- | ---- | --------------------------- |
+| GET    | `/search?q=zeus`          | ❌   | Search across all resources |
+| GET    | `/search?q=zeus&type=god` | ❌   | Search filtered by type     |
+
+---
+
+## Request Examples
+
+### Create a God
+
+```http
+POST /gods
+x-api-key: your-api-key
+Content-Type: application/json
+
+{
+  "name": "Zeus",
+  "domain": "sky",
+  "description": "King of the Olympian gods and ruler of Mount Olympus.",
+  "symbol": "lightning bolt",
+  "romanName": "Jupiter"
+}
+```
+
+### Create a Titan
+
+```http
+POST /titans
+x-api-key: your-api-key
+Content-Type: application/json
+
+{
+  "name": "Kronos",
+  "generation": "primordial",
+  "description": "Titan ruler of the universe before the Olympians.",
+  "symbol": "scythe",
+  "romanName": "Saturn"
+}
+```
+
+### Add a Parent to a God
+
+```http
+POST /gods/:godId/parents/:titanId
+x-api-key: your-api-key
+```
+
+### Create a Myth
+
+```http
+POST /myths
+x-api-key: your-api-key
+Content-Type: application/json
+
+{
+  "title": "The Birth of Athena",
+  "summary": "Zeus swallowed his pregnant consort Metis fearing a prophecy. Later, Hephaestus split Zeus's skull and Athena emerged fully grown and armored."
+}
+```
+
+### Add a Character to a Myth
+
+```http
+POST /myths/:mythId/characters/:beingId
+x-api-key: your-api-key
+```
+
+### List Gods with Pagination
+
+```http
+GET /gods?page=1&limit=10
+```
+
+### Search
+
+```http
+GET /search?q=zeus&type=god
+```
+
+---
+
+## Technical Highlights
+
+### Single Table Inheritance (STI)
+
+Gods and Titans share a common `MythologicalBeing` base entity stored in a single `beings` table. A `type` column distinguishes between them. This allows family relationships (parents/children) to work across both types — a God can have a Titan as a parent without any extra complexity.
+
+### API Key Authentication with Guards
+
+Instead of JWT, this API uses API Keys via a custom NestJS `Guard`. The guard reads the `x-api-key` header and validates it against the configured key. A `@Public()` decorator marks endpoints that should bypass the guard, making it easy to control access at the method level.
+
+### Redis Caching
+
+All `GET` endpoints use `CacheInterceptor` from `@nestjs/cache-manager` backed by a Redis instance on Upstash. Responses are cached for 60 seconds, reducing database load on repeated reads.
+
+### Full-Text Search
+
+Search is implemented using PostgreSQL's native full-text search with `to_tsvector` and `plainto_tsquery`. A generic `searchInRepository` method handles the query builder logic and is reused across all resource types. Results from multiple resources are combined in parallel using `Promise.all`.
+
+### Typed Configuration
+
+All environment variables are validated at startup using a `required()` helper. If a critical variable is missing, the app throws a descriptive error and refuses to start. Each config namespace (`app`, `database`) is typed with a TypeScript interface for safe access throughout the codebase.
