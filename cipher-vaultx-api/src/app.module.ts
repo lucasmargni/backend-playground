@@ -9,6 +9,7 @@ import { Secret } from './secrets/entities/secret.entity';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CryptoModule } from './crypto/crypto.module';
+import { VaultsModule } from './vaults/vaults.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CryptoModule } from './crypto/crypto.module';
     AuthModule,
     UsersModule,
     CryptoModule,
+    VaultsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

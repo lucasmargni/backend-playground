@@ -27,6 +27,9 @@ export class Vault {
   @Column({ type: 'bytea' })
   keyAuthTag!: Buffer;
 
+  @Column({ type: 'bytea' })
+  salt!: Buffer;
+
   @CreateDateColumn()
   createdAt!: Date;
 
