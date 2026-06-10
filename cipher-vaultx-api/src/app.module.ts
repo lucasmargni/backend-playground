@@ -8,6 +8,7 @@ import { Vault } from './vaults/entities/vault.entity';
 import { Secret } from './secrets/entities/secret.entity';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { CryptoModule } from './crypto/crypto.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     UsersModule,
+    CryptoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
