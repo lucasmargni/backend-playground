@@ -23,14 +23,14 @@ export class SecretsService {
     vaultId: string,
     userId: string,
   ): Promise<Secret> {
-    const vault = await this.vaultsService.findOneByUser(vaultId, userId);
+    const { member } = await this.vaultsService.findOneByUser(vaultId, userId);
 
     const vaultKey = this.cryptoService.decryptVaultKey(
-      vault.encryptedKey,
-      vault.keyIv,
-      vault.keyAuthTag,
+      member.encryptedKey,
+      member.keyIv,
+      member.keyAuthTag,
       dto.password,
-      vault.salt,
+      member.salt,
     );
 
     const encrypted = this.cryptoService.encryptSecret(dto.value, vaultKey);
@@ -71,7 +71,7 @@ export class SecretsService {
     userId: string,
     dto: UnlockVaultDto,
   ): Promise<SecretResponse> {
-    const vault = await this.vaultsService.findOneByUser(vaultId, userId);
+    const { member } = await this.vaultsService.findOneByUser(vaultId, userId);
 
     const secret = await this.secretRepository.findOne({
       where: { id, vault: { id: vaultId } as Vault },
@@ -82,11 +82,11 @@ export class SecretsService {
     }
 
     const vaultKey = this.cryptoService.decryptVaultKey(
-      vault.encryptedKey,
-      vault.keyIv,
-      vault.keyAuthTag,
+      member.encryptedKey,
+      member.keyIv,
+      member.keyAuthTag,
       dto.password,
-      vault.salt,
+      member.salt,
     );
 
     const secretValue = this.cryptoService.decryptSecret(

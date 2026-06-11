@@ -11,6 +11,8 @@ import { UsersModule } from './users/users.module';
 import { CryptoModule } from './crypto/crypto.module';
 import { VaultsModule } from './vaults/vaults.module';
 import { SecretsModule } from './secrets/secrets.module';
+import { VaultMembersModule } from './vault-members/vault-members.module';
+import { VaultMember } from './vault-members/entities/vault-member.entity';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { SecretsModule } from './secrets/secrets.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.getOrThrow<string>('DATABASE_URL'),
-        entities: [User, Vault, Secret],
+        entities: [User, Vault, Secret, VaultMember],
         synchronize: false,
         migrations: ['dist/migrations/**/*.js'],
         migrationsRun: false,
@@ -34,6 +36,7 @@ import { SecretsModule } from './secrets/secrets.module';
     CryptoModule,
     VaultsModule,
     SecretsModule,
+    VaultMembersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

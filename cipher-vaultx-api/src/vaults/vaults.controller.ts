@@ -12,6 +12,7 @@ import { JwtGuard } from '../auth/guards/jwt.guard';
 import { Vault } from './entities/vault.entity';
 import type { Request } from 'express';
 import { CreateVaultDto } from './dto/create-vault.dto';
+import { VaultDetail } from '../common/types';
 
 @UseGuards(JwtGuard)
 @Controller('vaults')
@@ -24,8 +25,16 @@ export class VaultsController {
   }
 
   @Get('/:id')
-  getVaultById(@Req() req: Request, @Param('id') id: string): Promise<Vault> {
-    return this.vaultsService.findOneByUser(id, req.user!.id);
+  async getVaultById(
+    @Req() req: Request,
+    @Param('id') id: string,
+  ): Promise<VaultDetail> {
+    const { vault, member } = await this.vaultsService.findOneByUser(
+      id,
+      req.user!.id,
+    );
+
+    return { vault, role: member.role };
   }
 
   @Post()
@@ -33,6 +42,6 @@ export class VaultsController {
     @Req() req: Request,
     @Body() dto: CreateVaultDto,
   ): Promise<Vault> {
-    return this.vaultsService.create(dto, req.user!.id);
+    return this.vaultsService.create(dto, req.user!);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
 import { EncryptResponse, VaultKeyResponse } from '../common/types';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class CryptoService {
@@ -43,12 +43,9 @@ export class CryptoService {
   }
 
   generateVaultKey(password: string): VaultKeyResponse {
-    const salt = crypto.randomBytes(this.SALT_LENGTH);
-    const masterKey = this.deriveKey(password, salt);
     const vaultKey = crypto.randomBytes(this.KEY_LENGTH);
-    const encrypted = this.encrypt(vaultKey, masterKey);
 
-    return { ...encrypted, salt };
+    return this.wrapVaultKey(vaultKey, password);
   }
 
   decryptVaultKey(
@@ -81,5 +78,13 @@ export class CryptoService {
     const value = decrypted.toString('utf-8');
 
     return value;
+  }
+
+  wrapVaultKey(vaultKey: Buffer, password: string): VaultKeyResponse {
+    const salt = crypto.randomBytes(this.SALT_LENGTH);
+    const masterKey = this.deriveKey(password, salt);
+    const encrypted = this.encrypt(vaultKey, masterKey);
+
+    return { ...encrypted, salt };
   }
 }

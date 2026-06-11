@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Vault } from '../../vaults/entities/vault.entity';
+import { VaultMember } from '../../vault-members/entities/vault-member.entity';
 
 @Entity()
 export class User {
@@ -28,6 +28,6 @@ export class User {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToMany(() => Vault, (vault) => vault.user)
-  vaults!: Vault[];
+  @OneToMany(() => VaultMember, (member) => member.user)
+  vaultMembers!: VaultMember[];
 }

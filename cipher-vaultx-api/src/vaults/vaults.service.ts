@@ -5,45 +5,52 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateVaultDto } from './dto/create-vault.dto';
 import { CryptoService } from '../crypto/crypto.service';
 import { User } from '../users/entities/user.entity';
+import { VaultMembersService } from '../vault-members/vault-members.service';
+import { VaultAccess } from '../common/types';
 
 @Injectable()
 export class VaultsService {
   constructor(
     @InjectRepository(Vault)
     private readonly vaultRepository: Repository<Vault>,
+    private readonly vaultMembersService: VaultMembersService,
     private readonly cryptoService: CryptoService,
   ) {}
 
-  create(dto: CreateVaultDto, userId: string): Promise<Vault> {
-    const vaultKey = this.cryptoService.generateVaultKey(dto.password);
-
+  async create(dto: CreateVaultDto, user: User): Promise<Vault> {
     const vault = this.vaultRepository.create({
       name: dto.name,
-      encryptedKey: vaultKey.encrypted,
-      keyIv: vaultKey.iv,
-      keyAuthTag: vaultKey.authTag,
-      salt: vaultKey.salt,
-      user: { id: userId } as User,
     });
 
-    return this.vaultRepository.save(vault);
+    await this.vaultRepository.save(vault);
+
+    await this.vaultMembersService.createOwner(vault, user, dto.password);
+
+    return vault;
   }
 
   findAllByUser(userId: string): Promise<Vault[]> {
     return this.vaultRepository.find({
-      where: { user: { id: userId } as User },
+      where: { members: { user: { id: userId } as User } },
     });
   }
 
-  async findOneByUser(id: string, userId: string): Promise<Vault> {
+  async findOneByUser(id: string, userId: string): Promise<VaultAccess> {
     const vault = await this.vaultRepository.findOne({
-      where: { id, user: { id: userId } as User },
+      where: { id, members: { user: { id: userId } as User } },
+      relations: { members: { user: true } },
     });
 
     if (!vault) {
       throw new NotFoundException('Vault not found');
     }
 
-    return vault;
+    const member = vault.members.find((m) => m.user.id === userId);
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    return { vault, member };
   }
 }

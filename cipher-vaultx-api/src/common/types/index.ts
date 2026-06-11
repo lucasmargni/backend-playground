@@ -1,3 +1,7 @@
+import { VaultMember } from '../../vault-members/entities/vault-member.entity';
+import { VaultRole } from '../../vault-members/entities/vault-role.enum';
+import { Vault } from '../../vaults/entities/vault.entity';
+
 export type AuthResponse = { accessToken: string };
 
 export interface JwtPayload {
@@ -23,4 +27,14 @@ export type SecretSummary = {
   name: string;
   description: string | null;
   createdAt: Date;
+};
+
+export type VaultAccess = {
+  vault: Vault;
+  member: VaultMember;
+};
+
+export type VaultDetail = {
+  vault: Vault;
+  role: VaultRole;
 };

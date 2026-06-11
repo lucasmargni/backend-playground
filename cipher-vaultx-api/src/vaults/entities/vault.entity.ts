@@ -2,13 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { Secret } from '../../secrets/entities/secret.entity';
+import { VaultMember } from '../../vault-members/entities/vault-member.entity';
 
 @Entity()
 export class Vault {
@@ -18,26 +17,14 @@ export class Vault {
   @Column()
   name!: string;
 
-  @Column({ type: 'bytea' })
-  encryptedKey!: Buffer;
-
-  @Column({ type: 'bytea' })
-  keyIv!: Buffer;
-
-  @Column({ type: 'bytea' })
-  keyAuthTag!: Buffer;
-
-  @Column({ type: 'bytea' })
-  salt!: Buffer;
-
   @CreateDateColumn()
   createdAt!: Date;
 
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => User, (user) => user.vaults)
-  user!: User;
+  @OneToMany(() => VaultMember, (member) => member.vault)
+  members!: VaultMember[];
 
   @OneToMany(() => Secret, (secret) => secret.vault)
   secrets!: Secret[];
