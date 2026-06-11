@@ -87,4 +87,8 @@ export class CryptoService {
 
     return { ...encrypted, salt };
   }
+
+  generateToken(): string {
+    return crypto.randomBytes(32).toString('hex');
+  }
 }

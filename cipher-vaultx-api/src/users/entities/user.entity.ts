@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { VaultMember } from '../../vault-members/entities/vault-member.entity';
+import { VaultInvitation } from '../../vault-members/entities/vault-invitation.entity';
 
 @Entity()
 export class User {
@@ -30,4 +31,7 @@ export class User {
 
   @OneToMany(() => VaultMember, (member) => member.user)
   vaultMembers!: VaultMember[];
+
+  @OneToMany(() => VaultInvitation, (inv) => inv.invitedUser)
+  invitations!: VaultInvitation[];
 }

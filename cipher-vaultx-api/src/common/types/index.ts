@@ -38,3 +38,7 @@ export type VaultDetail = {
   vault: Vault;
   role: VaultRole;
 };
+
+export type Token = {
+  token: string;
+};

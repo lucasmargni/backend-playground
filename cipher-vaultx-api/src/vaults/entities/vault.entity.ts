@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Secret } from '../../secrets/entities/secret.entity';
 import { VaultMember } from '../../vault-members/entities/vault-member.entity';
+import { VaultInvitation } from '../../vault-members/entities/vault-invitation.entity';
 
 @Entity()
 export class Vault {
@@ -28,4 +29,7 @@ export class Vault {
 
   @OneToMany(() => Secret, (secret) => secret.vault)
   secrets!: Secret[];
+
+  @OneToMany(() => VaultInvitation, (inv) => inv.vault)
+  invitations!: VaultInvitation[];
 }
