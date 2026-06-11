@@ -12,3 +12,15 @@ export type EncryptResponse = {
 };
 
 export type VaultKeyResponse = EncryptResponse & { salt: Buffer };
+
+export type SecretResponse = {
+  name: string;
+  value: string;
+};
+
+export type SecretSummary = {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: Date;
+};
