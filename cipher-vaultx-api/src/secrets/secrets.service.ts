@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Secret } from './entities/secret.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,6 +12,7 @@ import { Vault } from '../vaults/entities/vault.entity';
 import { VaultsService } from '../vaults/vaults.service';
 import { UnlockVaultDto } from './dto/unlock-vault.dto';
 import { SecretResponse, SecretSummary } from '../common/types';
+import { VaultRole } from '../vault-members/entities/vault-role.enum';
 
 @Injectable()
 export class SecretsService {
@@ -24,6 +29,10 @@ export class SecretsService {
     userId: string,
   ): Promise<Secret> {
     const { member } = await this.vaultsService.findOneByUser(vaultId, userId);
+
+    if (member.role === VaultRole.VIEWER) {
+      throw new ForbiddenException('Viewers cannot create secrets');
+    }
 
     const vaultKey = this.cryptoService.decryptVaultKey(
       member.encryptedKey,
