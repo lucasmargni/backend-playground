@@ -16,8 +16,9 @@ import { VaultMember } from './vault-members/entities/vault-member.entity';
 import { VaultInvitation } from './vault-members/entities/vault-invitation.entity';
 import { AuditModule } from './audit/audit.module';
 import { AuditLog } from './audit/entities/audit-log.entity';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from './audit/audit.interceptor';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -36,6 +37,12 @@ import { AuditInterceptor } from './audit/audit.interceptor';
       }),
       inject: [ConfigService],
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     AuthModule,
     UsersModule,
     CryptoModule,
@@ -48,6 +55,7 @@ import { AuditInterceptor } from './audit/audit.interceptor';
   providers: [
     AppService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}
