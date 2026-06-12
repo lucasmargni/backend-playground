@@ -14,6 +14,9 @@ import type { Request } from 'express';
 import { CreateSecretDto } from './dto/create-secret.dto';
 import { Secret } from './entities/secret.entity';
 import { UnlockVaultDto } from './dto/unlock-vault.dto';
+import { Audit } from '../audit/decorators/audit.decorator';
+import { AuditAction } from '../audit/entities/audit-action.enum';
+import { AuditResourceType } from '../audit/entities/audit-resource-type.enum';
 
 @UseGuards(JwtGuard)
 @Controller('vaults/:vaultId/secrets')
@@ -29,6 +32,7 @@ export class SecretsController {
   }
 
   @Post()
+  @Audit(AuditAction.CREATED, AuditResourceType.SECRET)
   createSecret(
     @Req() req: Request,
     @Param('vaultId') vaultId: string,
@@ -38,6 +42,7 @@ export class SecretsController {
   }
 
   @Post('/:id/unlock')
+  @Audit(AuditAction.UNLOCKED, AuditResourceType.SECRET)
   unlockSecret(
     @Req() req: Request,
     @Param('vaultId') vaultId: string,

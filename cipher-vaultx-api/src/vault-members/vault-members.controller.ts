@@ -4,6 +4,9 @@ import { VaultMembersService } from './vault-members.service';
 import { AcceptInvitationDto } from './dto/accept-invitation.dto';
 import { VaultMember } from './entities/vault-member.entity';
 import type { Request } from 'express';
+import { Audit } from '../audit/decorators/audit.decorator';
+import { AuditAction } from '../audit/entities/audit-action.enum';
+import { AuditResourceType } from '../audit/entities/audit-resource-type.enum';
 
 @UseGuards(JwtGuard)
 @Controller('invitations')
@@ -11,6 +14,7 @@ export class VaultMembersController {
   constructor(private readonly vaultMembersService: VaultMembersService) {}
 
   @Post('/:token/accept')
+  @Audit(AuditAction.ACCEPTED, AuditResourceType.INVITATION)
   acceptInvitation(
     @Req() req: Request,
     @Param('token') token: string,

@@ -55,6 +55,7 @@ export class VaultsController {
   }
 
   @Post('/:id/invitations')
+  @Audit(AuditAction.INVITED, AuditResourceType.INVITATION)
   async inviteUser(
     @Req() req: Request,
     @Param('id') id: string,
