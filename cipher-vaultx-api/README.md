@@ -202,7 +202,7 @@ Every secret value, and every vault encryption key, is encrypted with **AES-256-
 - Sharing uses short-lived, single-use invitation tokens. The vault key is temporarily wrapped with the token itself and discarded once the invitation is accepted or expires.
 - All sensitive actions (vault/secret creation, secret unlocks, invitations, invitation acceptance) are recorded in an append-only audit log, including failed attempts.
 
-For a full breakdown of the encryption flow, algorithms, and the `CryptoService` API, see [`docs/CRYPTO_ENGINE.md`](./docs/CRYPTO_ENGINE.md).
+For a full breakdown of the encryption flow, algorithms, and the `CryptoService` API, see [`docs/SECURITY.md`](./docs/SECURITY.md).
 
 ---
 
