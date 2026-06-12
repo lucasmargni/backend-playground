@@ -1,4 +1,3 @@
-from __future__ import annotations
 from .models import Note, ChordQuality, Chord, Scale
 
 # Builds a chord from a root note and a chord quality, returning all its notes
