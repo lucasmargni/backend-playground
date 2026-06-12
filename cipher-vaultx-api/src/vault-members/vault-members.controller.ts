@@ -7,14 +7,18 @@ import type { Request } from 'express';
 import { Audit } from '../audit/decorators/audit.decorator';
 import { AuditAction } from '../audit/entities/audit-action.enum';
 import { AuditResourceType } from '../audit/entities/audit-resource-type.enum';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@UseGuards(JwtGuard)
 @Controller('invitations')
+@UseGuards(JwtGuard)
+@ApiTags('invitations')
+@ApiBearerAuth()
 export class VaultMembersController {
   constructor(private readonly vaultMembersService: VaultMembersService) {}
 
   @Post('/:token/accept')
   @Audit(AuditAction.ACCEPTED, AuditResourceType.INVITATION)
+  @ApiOperation({ summary: 'Accept a vault invitation using its token' })
   acceptInvitation(
     @Req() req: Request,
     @Param('token') token: string,

@@ -18,9 +18,12 @@ import { CreateInvitationDto } from '../vault-members/dto/create-invitation.dto'
 import { Audit } from '../audit/decorators/audit.decorator';
 import { AuditAction } from '../audit/entities/audit-action.enum';
 import { AuditResourceType } from '../audit/entities/audit-resource-type.enum';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@UseGuards(JwtGuard)
 @Controller('vaults')
+@UseGuards(JwtGuard)
+@ApiTags('vaults')
+@ApiBearerAuth()
 export class VaultsController {
   constructor(
     private readonly vaultsService: VaultsService,
@@ -28,11 +31,17 @@ export class VaultsController {
   ) {}
 
   @Get()
+  @ApiOperation({
+    summary: 'List all vaults the authenticated user has access to',
+  })
   getVaults(@Req() req: Request): Promise<Vault[]> {
     return this.vaultsService.findAllByUser(req.user!.id);
   }
 
   @Get('/:id')
+  @ApiOperation({
+    summary: 'Get vault details and the user role for this vault',
+  })
   async getVaultById(
     @Req() req: Request,
     @Param('id') id: string,
@@ -47,6 +56,7 @@ export class VaultsController {
 
   @Post()
   @Audit(AuditAction.CREATED, AuditResourceType.VAULT)
+  @ApiOperation({ summary: 'Create a new vault and become its owner' })
   createVault(
     @Req() req: Request,
     @Body() dto: CreateVaultDto,
@@ -56,6 +66,7 @@ export class VaultsController {
 
   @Post('/:id/invitations')
   @Audit(AuditAction.INVITED, AuditResourceType.INVITATION)
+  @ApiOperation({ summary: 'Invite another user to this vault (owner only)' })
   async inviteUser(
     @Req() req: Request,
     @Param('id') id: string,

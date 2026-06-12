@@ -22,9 +22,12 @@ import { VaultsService } from '../vaults/vaults.service';
 import { AuditService } from '../audit/audit.service';
 import { VaultRole } from '../vault-members/entities/vault-role.enum';
 import { AuditLog } from '../audit/entities/audit-log.entity';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@UseGuards(JwtGuard)
 @Controller('vaults/:vaultId/secrets')
+@UseGuards(JwtGuard)
+@ApiTags('secrets')
+@ApiBearerAuth()
 export class SecretsController {
   constructor(
     private readonly secretsService: SecretsService,
@@ -33,6 +36,9 @@ export class SecretsController {
   ) {}
 
   @Get()
+  @ApiOperation({
+    summary: 'List secrets in a vault (without decrypted values)',
+  })
   getSecrets(
     @Req() req: Request,
     @Param('vaultId') vaultId: string,
@@ -41,6 +47,9 @@ export class SecretsController {
   }
 
   @Get('/audit-logs')
+  @ApiOperation({
+    summary: 'Get audit logs for this vault and its secrets (owner only)',
+  })
   async getAuditLogs(
     @Req() req: Request,
     @Param('vaultId') vaultId: string,
@@ -60,6 +69,7 @@ export class SecretsController {
 
   @Post()
   @Audit(AuditAction.CREATED, AuditResourceType.SECRET)
+  @ApiOperation({ summary: 'Create and encrypt a new secret in this vault' })
   createSecret(
     @Req() req: Request,
     @Param('vaultId') vaultId: string,
@@ -70,6 +80,7 @@ export class SecretsController {
 
   @Post('/:id/unlock')
   @Audit(AuditAction.UNLOCKED, AuditResourceType.SECRET)
+  @ApiOperation({ summary: 'Decrypt and retrieve a secret value' })
   unlockSecret(
     @Req() req: Request,
     @Param('vaultId') vaultId: string,
