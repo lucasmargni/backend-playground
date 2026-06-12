@@ -37,6 +37,24 @@ A REST API about Greek mythology built with NestJS. Covers REST API design, Sing
 
 ---
 
+### 🔐 Cipher VaultX API
+
+A secure secrets manager API built with NestJS. Covers end-to-end encryption with AES-256-GCM and PBKDF2, per-user key wrapping for secure vault sharing, JWT authentication, role-based permissions, append-only audit logging, and a full hardening layer with rate limiting and Swagger documentation.
+
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=nodedotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-FE0803?style=flat&logo=typeorm&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Security](https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat&logo=letsencrypt&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=flat&logo=jsonwebtokens&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat&logo=swagger&logoColor=black)
+
+📄 [View project README](./cipher-vaultx-api/README.md)
+
+---
+
 ## License
 
 This repository is licensed under the MIT License. See [LICENSE](./LICENSE) for details.

@@ -1,0 +1,61 @@
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './users/entities/user.entity';
+import { Vault } from './vaults/entities/vault.entity';
+import { Secret } from './secrets/entities/secret.entity';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { CryptoModule } from './crypto/crypto.module';
+import { VaultsModule } from './vaults/vaults.module';
+import { SecretsModule } from './secrets/secrets.module';
+import { VaultMembersModule } from './vault-members/vault-members.module';
+import { VaultMember } from './vault-members/entities/vault-member.entity';
+import { VaultInvitation } from './vault-members/entities/vault-invitation.entity';
+import { AuditModule } from './audit/audit.module';
+import { AuditLog } from './audit/entities/audit-log.entity';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditInterceptor } from './audit/audit.interceptor';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        url: configService.getOrThrow<string>('DATABASE_URL'),
+        entities: [User, Vault, Secret, VaultMember, VaultInvitation, AuditLog],
+        synchronize: false,
+        migrations: ['dist/migrations/**/*.js'],
+        migrationsRun: false,
+      }),
+      inject: [ConfigService],
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
+    AuthModule,
+    UsersModule,
+    CryptoModule,
+    VaultsModule,
+    SecretsModule,
+    VaultMembersModule,
+    AuditModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
+})
+export class AppModule {}
