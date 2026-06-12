@@ -14,6 +14,10 @@ import { SecretsModule } from './secrets/secrets.module';
 import { VaultMembersModule } from './vault-members/vault-members.module';
 import { VaultMember } from './vault-members/entities/vault-member.entity';
 import { VaultInvitation } from './vault-members/entities/vault-invitation.entity';
+import { AuditModule } from './audit/audit.module';
+import { AuditLog } from './audit/entities/audit-log.entity';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditInterceptor } from './audit/audit.interceptor';
 
 @Module({
   imports: [
@@ -25,7 +29,7 @@ import { VaultInvitation } from './vault-members/entities/vault-invitation.entit
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.getOrThrow<string>('DATABASE_URL'),
-        entities: [User, Vault, Secret, VaultMember, VaultInvitation],
+        entities: [User, Vault, Secret, VaultMember, VaultInvitation, AuditLog],
         synchronize: false,
         migrations: ['dist/migrations/**/*.js'],
         migrationsRun: false,
@@ -38,8 +42,12 @@ import { VaultInvitation } from './vault-members/entities/vault-invitation.entit
     VaultsModule,
     SecretsModule,
     VaultMembersModule,
+    AuditModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+  ],
 })
 export class AppModule {}

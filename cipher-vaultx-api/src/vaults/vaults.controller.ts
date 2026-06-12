@@ -15,6 +15,9 @@ import { CreateVaultDto } from './dto/create-vault.dto';
 import { Token, VaultDetail } from '../common/types';
 import { VaultMembersService } from '../vault-members/vault-members.service';
 import { CreateInvitationDto } from '../vault-members/dto/create-invitation.dto';
+import { Audit } from '../audit/decorators/audit.decorator';
+import { AuditAction } from '../audit/entities/audit-action.enum';
+import { AuditResourceType } from '../audit/entities/audit-resource-type.enum';
 
 @UseGuards(JwtGuard)
 @Controller('vaults')
@@ -43,6 +46,7 @@ export class VaultsController {
   }
 
   @Post()
+  @Audit(AuditAction.CREATED, AuditResourceType.VAULT)
   createVault(
     @Req() req: Request,
     @Body() dto: CreateVaultDto,

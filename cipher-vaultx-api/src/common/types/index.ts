@@ -1,3 +1,5 @@
+import { AuditAction } from '../../audit/entities/audit-action.enum';
+import { AuditResourceType } from '../../audit/entities/audit-resource-type.enum';
 import { VaultMember } from '../../vault-members/entities/vault-member.entity';
 import { VaultRole } from '../../vault-members/entities/vault-role.enum';
 import { Vault } from '../../vaults/entities/vault.entity';
@@ -41,4 +43,13 @@ export type VaultDetail = {
 
 export type Token = {
   token: string;
+};
+
+export type AuditLogEntry = {
+  userId: string | null;
+  action: AuditAction;
+  resourceType: AuditResourceType;
+  resourceId: string;
+  success: boolean;
+  errorMessage?: string | null;
 };
