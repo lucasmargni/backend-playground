@@ -107,4 +107,13 @@ export class SecretsService {
 
     return { name: secret.name, value: secretValue };
   }
+
+  async findIdsByVault(vaultId: string): Promise<string[]> {
+    const secrets = await this.secretRepository.find({
+      where: { vault: { id: vaultId } as Vault },
+      select: { id: true },
+    });
+
+    return secrets.map((s) => s.id);
+  }
 }

@@ -5,9 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Secret } from './entities/secret.entity';
 import { Vault } from '../vaults/entities/vault.entity';
 import { VaultsModule } from '../vaults/vaults.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Secret, Vault]), VaultsModule],
+  imports: [
+    TypeOrmModule.forFeature([Secret, Vault]),
+    VaultsModule,
+    AuditModule,
+  ],
   providers: [SecretsService],
   controllers: [SecretsController],
 })
