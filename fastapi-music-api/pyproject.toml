@@ -26,3 +26,8 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pyright]
+include = ["app", "tests"]
+venvPath = "."
+venv = ".venv"
