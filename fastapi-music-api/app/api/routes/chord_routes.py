@@ -11,14 +11,6 @@ async def get_chord(note: str, quality: str) -> ChordResponse:
     chord = construct_chord(note, quality)
 
     return ChordResponse.from_domain(chord)
-    
-# returns all voicings of the chord as lists of note strings
-@router.get("/{note}/{quality}/inversions")
-async def get_chords_inversions(note: str, quality: str) -> list[list[str]]:
-    chord = construct_chord(note, quality)
-    inversions = get_chord_inversions(chord)
-
-    return  [[note_to_str(n) for n in inv] for inv in inversions]
 
 # returns all diatonic triads for the scale defined by root note and scale type
 @router.get("/diatonic/{note}/{scale_type}")
@@ -27,3 +19,11 @@ async def get_diatonic_chords_of_scale(note: str, scale_type: str) -> list[Chord
     chords = get_diatonic_chords(scale)
 
     return [ChordResponse.from_domain(c) for c in chords]
+    
+# returns all voicings of the chord as lists of note strings
+@router.get("/{note}/{quality}/inversions")
+async def get_chords_inversions(note: str, quality: str) -> list[list[str]]:
+    chord = construct_chord(note, quality)
+    inversions = get_chord_inversions(chord)
+
+    return  [[note_to_str(n) for n in inv] for inv in inversions]
