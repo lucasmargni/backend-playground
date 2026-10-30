@@ -13,18 +13,21 @@ from app.domain import (Note, ScaleType, build_scale,
     ],
 )
 def test_build_scale(root: Note, scale_type: ScaleType, expected: tuple[Note, ...]) -> None:
+    # Check some test cases
     assert build_scale(root, scale_type).notes == expected
 
 @pytest.mark.parametrize(
     "note",
     [
         Note.C,
+        Note.E,
         Note.F_SHARP
     ]
 )
 def test_scales_containing(note: Note) -> None:
     scales = find_scales_containing(note)
 
+    # Check some test cases
     assert len(scales) == 49
     assert all(note in scale.notes for scale in scales)
 
@@ -39,4 +42,5 @@ def test_scales_containing(note: Note) -> None:
 def test_scale_degree(note: Note, expected: int | None) -> None:
     scale = build_scale(Note.C, ScaleType.MAJOR)
 
+    # Check some test cases
     assert get_scale_degree(scale, note) == expected

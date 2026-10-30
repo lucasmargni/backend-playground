@@ -11,6 +11,7 @@ from app.domain import (ChordQuality, Note, ScaleType, build_chord, build_scale,
     ],
 )
 def test_build_chord(root: Note, quality: ChordQuality, expected: tuple[Note, ...]) -> None:
+    # Check some test cases
     assert build_chord(root, quality).notes == expected
 
 @pytest.mark.parametrize(
@@ -19,6 +20,10 @@ def test_build_chord(root: Note, quality: ChordQuality, expected: tuple[Note, ..
         (Note.C, ScaleType.MAJOR, (
             ChordQuality.MAJOR, ChordQuality.MINOR, ChordQuality.MINOR, ChordQuality.MAJOR,
             ChordQuality.MAJOR, ChordQuality.MINOR, ChordQuality.DIMINISHED,
+        )),
+        (Note.D, ScaleType.DORIAN, (
+            ChordQuality.MINOR, ChordQuality.MINOR, ChordQuality.MAJOR, ChordQuality.MAJOR,
+            ChordQuality.MINOR, ChordQuality.DIMINISHED, ChordQuality.MAJOR,
         )),
         (Note.A, ScaleType.HARMONIC_MINOR, (
             ChordQuality.MINOR, ChordQuality.DIMINISHED, ChordQuality.AUGMENTED, ChordQuality.MINOR,
@@ -32,6 +37,7 @@ def test_diatonic_chords(
     scale = build_scale(root, scale_type)
     chords = get_diatonic_chords(scale)
 
+    # Check some test cases
     assert tuple(chord.quality for chord in chords) == expected
     assert tuple(chord.root for chord in chords) == scale.notes
 
@@ -42,6 +48,11 @@ def test_diatonic_chords(
             (Note.C, Note.E, Note.G),
             (Note.E, Note.G, Note.C),
             (Note.G, Note.C, Note.E),
+        )),
+        (Note.A, ChordQuality.MINOR, (
+            (Note.A, Note.C, Note.E),
+            (Note.C, Note.E, Note.A),
+            (Note.E, Note.A, Note.C),
         )),
         (Note.G, ChordQuality.DOMINANT_SEVENTH, (
             (Note.G, Note.B, Note.D, Note.F),
@@ -54,4 +65,5 @@ def test_diatonic_chords(
 def test_chord_inversions(
     root: Note, quality: ChordQuality, expected: tuple[tuple[Note, ...], ...]
 ) -> None:
+    # Check some test cases
     assert get_chord_inversions(build_chord(root, quality)) == expected
