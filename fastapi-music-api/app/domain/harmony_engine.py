@@ -13,7 +13,7 @@ def get_fifths_distance(note_1: Note, note_2: Note) -> int:
 
 # Returns all notes within a given distance from a note in the circle of fifths
 def get_fifths_neighbors(note: Note, max_distance: int) -> tuple[Note, ...]:
-    return tuple(n for n in Note if get_fifths_distance(note, n) <= max_distance)
+    return tuple(n for n in Note if 0 < get_fifths_distance(note, n) <= max_distance)
 
 # Returns the notes that two scales have in common
 def find_shared_notes(scale_1: Scale, scale_2: Scale) -> tuple[Note, ...]:
