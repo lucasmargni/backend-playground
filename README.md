@@ -55,6 +55,21 @@ A secure secrets manager API built with NestJS. Covers end-to-end encryption wit
 
 ---
 
+### 🎵 FastAPI Music API
+
+A music theory engine built with Python and FastAPI. Covers algorithm design with modular arithmetic, layered architecture with an HTTP-independent domain, strict typing with mypy, immutable data modeling, in-memory caching, and testing with pytest.
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=flat&logo=pydantic&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)
+![mypy](https://img.shields.io/badge/mypy-strict-2A6DB2?style=flat)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat&logo=swagger&logoColor=black)
+
+📄 [View project README](./fastapi-music-api/README.md)
+
+---
+
 ## License
 
 This repository is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
