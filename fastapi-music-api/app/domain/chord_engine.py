@@ -1,6 +1,8 @@
+from functools import cache
 from .models import Note, ChordQuality, Chord, Scale
 
 # Builds a chord from a root note and a chord quality, returning all its notes
+@cache
 def build_chord(root: Note, quality: ChordQuality) -> Chord:
     notes = tuple(root.advance(interval) for interval in quality.value)
 
@@ -8,7 +10,8 @@ def build_chord(root: Note, quality: ChordQuality) -> Chord:
 
 # Returns the diatonic triads of a scale - one chord per degree, built from
 # the 1st, 3rd, and 5th notes of each scale position using only scale tones
-def get_diatonic_chords(scale: Scale) -> list[Chord]:
+@cache
+def get_diatonic_chords(scale: Scale) -> tuple[Chord, ...]:
     chords: list[Chord] = []
     num_notes = len(scale.notes)
 
@@ -24,11 +27,12 @@ def get_diatonic_chords(scale: Scale) -> list[Chord]:
         if quality is not None:
             chords.append(Chord(root, quality, (root, third, fifth)))
 
-    return chords
+    return tuple(chords)
 
 # Returns all voicings of a chord by rotating its notes — includes root position
 # and one inversion per additional note (first, second, and third for 7th chords)
-def get_chord_inversions(chord: Chord) -> list[list[Note]]:
+@cache
+def get_chord_inversions(chord: Chord) -> tuple[tuple[Note, ...], ...]:
     notes = chord.notes
 
-    return [list(notes[i:] + notes[:i]) for i in range(len(notes))]
+    return tuple(notes[i:] + notes[:i] for i in range(len(notes)))
