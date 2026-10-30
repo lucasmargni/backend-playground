@@ -2,14 +2,14 @@ from .models import Note, ChordQuality, Chord, Scale
 
 # Builds a chord from a root note and a chord quality, returning all its notes
 def build_chord(root: Note, quality: ChordQuality) -> Chord:
-    notes = [root.advance(interval) for interval in quality.value]
+    notes = tuple(root.advance(interval) for interval in quality.value)
 
     return Chord(root, quality, notes)
 
 # Returns the diatonic triads of a scale - one chord per degree, built from
 # the 1st, 3rd, and 5th notes of each scale position using only scale tones
 def get_diatonic_chords(scale: Scale) -> list[Chord]:
-    chords = []
+    chords: list[Chord] = []
     num_notes = len(scale.notes)
 
     for i in range(num_notes):
@@ -22,7 +22,7 @@ def get_diatonic_chords(scale: Scale) -> list[Chord]:
         quality = next((q for q in ChordQuality if q.value == intervals), None)
 
         if quality is not None:
-            chords.append(Chord(root, quality, [root, third, fifth]))
+            chords.append(Chord(root, quality, (root, third, fifth)))
 
     return chords
 
@@ -31,4 +31,4 @@ def get_diatonic_chords(scale: Scale) -> list[Chord]:
 def get_chord_inversions(chord: Chord) -> list[list[Note]]:
     notes = chord.notes
 
-    return [notes[i:] + notes[:i] for i in range(len(notes))]
+    return [list(notes[i:] + notes[:i]) for i in range(len(notes))]

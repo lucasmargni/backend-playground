@@ -3,7 +3,7 @@ from .models import Note, ScaleType, Scale
 
 # Builds a scale from a root note and a scale type, returning all its notes
 def build_scale(root: Note, scale_type: ScaleType) -> Scale:
-    notes = [root.advance(interval) for interval in scale_type.value]
+    notes = tuple(root.advance(interval) for interval in scale_type.value)
 
     return Scale(root, scale_type, notes)
 

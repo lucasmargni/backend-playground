@@ -45,10 +45,10 @@ class ChordQuality(Enum):
 class Scale:
     root: Note
     scale_type: ScaleType
-    notes: list[Note]
+    notes: tuple[Note, ...]
 
 @dataclass(frozen=True)
 class Chord:
     root: Note
     quality: ChordQuality
-    notes: list[Note]
+    notes: tuple[Note, ...]
