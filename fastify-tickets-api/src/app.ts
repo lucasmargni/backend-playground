@@ -1,3 +1,4 @@
+import sensible from '@fastify/sensible';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import Fastify from 'fastify';
 import { Type, type Static } from 'typebox';
@@ -15,6 +16,7 @@ export const buildApp = (): AppInstance => {
     return { status: 'ok' };
   });
 
+  app.register(sensible);
   app.register(eventsRoutes, { prefix: '/events' });
 
   return app;
