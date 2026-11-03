@@ -1,8 +1,9 @@
-import Fastify, { type FastifyInstance } from 'fastify';
-import type { HealthResponse } from './common/types/index.js';
+import Fastify from 'fastify';
+import type { AppInstance, HealthResponse } from './common/types/index.js';
+import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
-export const buildApp = (): FastifyInstance => {
-  const app: FastifyInstance = Fastify({ logger: true });
+export const buildApp = (): AppInstance => {
+  const app: AppInstance = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
 
   app.get<{ Reply: HealthResponse }>('/health', async () => {
     return { status: 'ok' };

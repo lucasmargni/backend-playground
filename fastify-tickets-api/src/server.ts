@@ -1,7 +1,7 @@
-import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
+import type { AppInstance } from './common/types/index.js';
 
-const app: FastifyInstance = buildApp();
+const app: AppInstance = buildApp();
 const port: number = Number(process.env.PORT ?? 3000);
 
 try {
