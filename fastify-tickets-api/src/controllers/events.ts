@@ -2,14 +2,17 @@ import type { FastifyRequest } from 'fastify';
 
 import type {
   EventDB,
+  EventDetailsResponse,
+  EventDetailsResult,
   EventFilters,
   EventPageResponse,
+  EventParams,
   EventQuery,
   EventResponse,
   EventSearchResult,
   Pagination,
 } from '../common/types/index.js';
-import { findEvents } from '../services/events.js';
+import { findEvent, findEvents } from '../services/events.js';
 
 const toEventResponse = (event: EventDB): EventResponse => {
   return {
@@ -17,6 +20,13 @@ const toEventResponse = (event: EventDB): EventResponse => {
     name: event.name,
     startsAt: event.startsAt.toISOString(),
     priceCents: event.priceCents,
+  };
+};
+
+const toEventDetailsResponse = (eventDetails: EventDetailsResult): EventDetailsResponse => {
+  return {
+    ...toEventResponse(eventDetails.event),
+    availableSeats: eventDetails.availableSeats,
   };
 };
 
@@ -54,4 +64,14 @@ export const getEvents = async (
   const { data, total }: EventSearchResult = await findEvents(filters, pagination);
 
   return { page, limit, data: data.map(toEventResponse), total };
+};
+
+export const getEvent = async (
+  request: FastifyRequest<{ Params: EventParams }>,
+): Promise<EventDetailsResponse> => {
+  const { eventId }: EventParams = request.params;
+
+  const eventDetails: EventDetailsResult = await findEvent(eventId);
+
+  return toEventDetailsResponse(eventDetails);
 };
