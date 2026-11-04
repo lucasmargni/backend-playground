@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import { Type, type Static } from 'typebox';
 
 import type { AppInstance } from './common/types/index.js';
+import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { eventsRoutes } from './routes/events.js';
 
 const HealthSchema = Type.Object({ status: Type.String() });
@@ -17,6 +18,7 @@ export const buildApp = (): AppInstance => {
   });
 
   app.register(sensible);
+  app.register(errorHandlerPlugin);
   app.register(eventsRoutes, { prefix: '/events' });
 
   return app;

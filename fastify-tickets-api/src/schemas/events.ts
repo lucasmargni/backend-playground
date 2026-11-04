@@ -22,3 +22,12 @@ export const EventQuerySchema = Type.Object({
   page: Type.Integer({ minimum: 1, default: 1 }),
   limit: Type.Integer({ minimum: 1, maximum: 100, default: 20 }),
 });
+
+export const EventParamsSchema = Type.Object({
+  eventId: Type.String({ format: 'uuid' }),
+});
+
+export const EventDetailsSchema = Type.Object({
+  ...EventSchema.properties,
+  availableSeats: Type.Integer(),
+});
