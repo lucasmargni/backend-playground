@@ -20,10 +20,11 @@ try {
   const newSeats: NewSeat[] = [];
 
   for (const row of rows) {
-    for (let seatNum = 1; seatNum <= seatsPerRow; seatNum++) {
+    for (let seatNum: number = 1; seatNum <= seatsPerRow; seatNum++) {
       newSeats.push({
         eventId: event.id,
-        label: `${row}${seatNum}`,
+        row,
+        number: seatNum,
       });
     }
   }

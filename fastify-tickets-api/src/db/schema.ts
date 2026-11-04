@@ -48,10 +48,14 @@ export const seats = pgTable(
     eventId: uuid('event_id')
       .notNull()
       .references(() => events.id),
-    label: text('label').notNull(),
+    row: text('row').notNull(),
+    number: integer('number').notNull(),
     status: seatStatus('status').notNull().default('available'),
   },
-  (table) => [unique().on(table.eventId, table.label)],
+  (table) => [
+    unique().on(table.eventId, table.row, table.number),
+    check('seats_number_positive', sql`${table.number} > 0`),
+  ],
 );
 
 export const reservations = pgTable('reservations', {
