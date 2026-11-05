@@ -28,8 +28,10 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@fastify/jwt": "^10.2.7",
     "@fastify/sensible": "^6.0.7",
     "@fastify/type-provider-typebox": "^6.3.0",
+    "argon2": "^0.45.2",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.8",
     "fastify-plugin": "^6.0.1",

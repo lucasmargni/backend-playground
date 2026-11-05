@@ -1,4 +1,4 @@
-import type { NewSeat } from '../common/types/index.js';
+import type { EventDB, NewSeat } from '../common/types/index.js';
 import { db, pool } from './index.js';
 import { events, seats } from './schema.js';
 
@@ -8,7 +8,7 @@ const rows: string[] = ['A', 'B', 'C', 'D', 'E'];
 const seatsPerRow: number = 10;
 
 try {
-  const [event] = await db
+  const [event]: EventDB[] = await db
     .insert(events)
     .values({ name: 'firstEvent', priceCents: 20000, startsAt })
     .returning();

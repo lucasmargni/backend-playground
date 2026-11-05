@@ -12,3 +12,9 @@ export class NotFoundError extends DomainError {
     super(`${objectName} ${objectId} not found`);
   }
 }
+
+export class ConflictError extends DomainError {
+  constructor(objectName: string, existingAttribute: string) {
+    super(`There already exists a ${objectName} with the same ${existingAttribute}`);
+  }
+}
