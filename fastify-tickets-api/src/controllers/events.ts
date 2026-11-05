@@ -12,7 +12,7 @@ import type {
   EventSearchResult,
   Pagination,
 } from '../common/types/index.js';
-import { findEvent, findEvents } from '../services/events.js';
+import { findEventDetails, findEvents } from '../services/events.js';
 
 const toEventResponse = (event: EventDB): EventResponse => {
   return {
@@ -71,7 +71,7 @@ export const getEvent = async (
 ): Promise<EventDetailsResponse> => {
   const { eventId }: EventParams = request.params;
 
-  const eventDetails: EventDetailsResult = await findEvent(eventId);
+  const eventDetails: EventDetailsResult = await findEventDetails(eventId);
 
   return toEventDetailsResponse(eventDetails);
 };

@@ -38,7 +38,18 @@ export const findEvents = async (
   return { data: rows, total: countRows[0]?.count ?? 0 };
 };
 
-export const findEvent = async (eventId: string): Promise<EventDetailsResult> => {
+export const findEventDetails = async (eventId: string): Promise<EventDetailsResult> => {
+  const event: EventDB = await findEvent(eventId);
+
+  const countRows: Count[] = await db
+    .select({ count: count() })
+    .from(seats)
+    .where(and(eq(seats.eventId, eventId), eq(seats.status, 'available')));
+
+  return { event, availableSeats: countRows[0]?.count ?? 0 };
+};
+
+export const findEvent = async (eventId: string): Promise<EventDB> => {
   const rows: EventDB[] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
   const event: EventDB | undefined = rows[0];
@@ -47,10 +58,5 @@ export const findEvent = async (eventId: string): Promise<EventDetailsResult> =>
     throw new NotFoundError('Event', eventId);
   }
 
-  const countRows: Count[] = await db
-    .select({ count: count() })
-    .from(seats)
-    .where(and(eq(seats.eventId, eventId), eq(seats.status, 'available')));
-
-  return { event, availableSeats: countRows[0]?.count ?? 0 };
+  return event;
 };
