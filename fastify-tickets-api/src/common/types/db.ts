@@ -1,3 +1,5 @@
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+
 import type {
   events,
   orders,
@@ -6,6 +8,8 @@ import type {
   seats,
   users,
 } from '../../db/schema.js';
+
+export type Transaction = Parameters<Parameters<NodePgDatabase['transaction']>[0]>[0];
 
 export type NewUser = typeof users.$inferInsert;
 export type NewEvent = typeof events.$inferInsert;

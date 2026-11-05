@@ -34,6 +34,10 @@ const isInvalidRange = (min: number | undefined, max: number | undefined): boole
   return min !== undefined && max !== undefined && min > max;
 };
 
+const isInvalidDate = (date: Date | undefined): boolean => {
+  return date !== undefined && Number.isNaN(date.getTime());
+};
+
 export const getEvents = async (
   request: FastifyRequest<{ Querystring: EventQuery }>,
 ): Promise<EventPageResponse> => {
@@ -44,6 +48,12 @@ export const getEvents = async (
 
   if (isInvalidRange(minPriceCents, maxPriceCents)) {
     throw request.server.httpErrors.badRequest('maxPriceCents must not be less than minPriceCents');
+  }
+  if (isInvalidDate(fromDate)) {
+    throw request.server.httpErrors.badRequest('from is not a valid date');
+  }
+  if (isInvalidDate(toDate)) {
+    throw request.server.httpErrors.badRequest('to is not a valid date');
   }
   if (isInvalidRange(fromDate?.getTime(), toDate?.getTime())) {
     throw request.server.httpErrors.badRequest('from must not be after to');

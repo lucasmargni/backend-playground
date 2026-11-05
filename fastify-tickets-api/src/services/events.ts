@@ -24,7 +24,7 @@ export const findEvents = async (
     filters.maxPriceCents !== undefined ? lte(events.priceCents, filters.maxPriceCents) : undefined,
   );
 
-  const [rows, countRows]: [EventDB[], Count[]] = await Promise.all([
+  const [rows, [countRow]]: [EventDB[], Count[]] = await Promise.all([
     db
       .select()
       .from(events)
@@ -35,18 +35,26 @@ export const findEvents = async (
     db.select({ count: count() }).from(events).where(condition),
   ]);
 
-  return { data: rows, total: countRows[0]?.count ?? 0 };
+  if (!countRow) {
+    throw new Error('COUNT returned no rows');
+  }
+
+  return { data: rows, total: countRow.count };
 };
 
 export const findEventDetails = async (eventId: string): Promise<EventDetailsResult> => {
   const event: EventDB = await findEvent(eventId);
 
-  const [countSeats]: Count[] = await db
+  const [countRow]: Count[] = await db
     .select({ count: count() })
     .from(seats)
     .where(and(eq(seats.eventId, eventId), eq(seats.status, 'available')));
 
-  return { event, availableSeats: countSeats?.count ?? 0 };
+  if (!countRow) {
+    throw new Error('COUNT returned no rows');
+  }
+
+  return { event, availableSeats: countRow.count };
 };
 
 export const findEvent = async (eventId: string): Promise<EventDB> => {

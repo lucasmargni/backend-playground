@@ -24,3 +24,9 @@ export class InvalidCredentialsError extends DomainError {
     super('Invalid credentials');
   }
 }
+
+export class UnknownUserError extends DomainError {
+  constructor() {
+    super('Unknown user');
+  }
+}

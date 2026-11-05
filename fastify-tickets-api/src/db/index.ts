@@ -9,4 +9,8 @@ if (!databaseUrl) {
 
 export const pool: Pool = new Pool({ connectionString: databaseUrl });
 
+pool.on('error', (error: Error): void => {
+  console.error('Idle PostgreSQL client error', error);
+});
+
 export const db: NodePgDatabase = drizzle(pool);

@@ -3,21 +3,17 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import type { AppInstance } from '../common/types/index.js';
 import { getCurrentUser, login, register } from '../controllers/auth.js';
 import { authenticate } from '../plugins/jwt.js';
-import { TokenSchema } from '../schemas/auth.js';
-import { UserCredentialsSchema, UserSchema } from '../schemas/users.js';
+import { LoginBodySchema, RegisterBodySchema, TokenSchema } from '../schemas/auth.js';
+import { UserSchema } from '../schemas/users.js';
 
 export const authRoutes: FastifyPluginAsyncTypebox = async (app: AppInstance): Promise<void> => {
   app.post(
     '/register',
-    { schema: { body: UserCredentialsSchema, response: { 201: UserSchema } } },
+    { schema: { body: RegisterBodySchema, response: { 201: UserSchema } } },
     register,
   );
 
-  app.post(
-    '/login',
-    { schema: { body: UserCredentialsSchema, response: { 200: TokenSchema } } },
-    login,
-  );
+  app.post('/login', { schema: { body: LoginBodySchema, response: { 200: TokenSchema } } }, login);
 
   app.get(
     '/me',

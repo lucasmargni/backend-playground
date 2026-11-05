@@ -1,12 +1,13 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import type {
+  LoginBody,
+  RegisterBody,
   TokenResponse,
-  UserCredentials,
   UserDB,
   UserResponse,
 } from '../common/types/index.js';
-import { createUser, findUser, verifyCredentials } from '../services/users.js';
+import { createUser, findAuthenticatedUser, verifyCredentials } from '../services/users.js';
 
 const toUserResponse = (user: UserDB): UserResponse => {
   return {
@@ -16,10 +17,10 @@ const toUserResponse = (user: UserDB): UserResponse => {
 };
 
 export const register = async (
-  request: FastifyRequest<{ Body: UserCredentials }>,
+  request: FastifyRequest<{ Body: RegisterBody }>,
   reply: FastifyReply,
 ): Promise<UserResponse> => {
-  const { email, password }: UserCredentials = request.body;
+  const { email, password }: RegisterBody = request.body;
 
   const user: UserDB = await createUser(email, password);
 
@@ -29,10 +30,10 @@ export const register = async (
 };
 
 export const login = async (
-  request: FastifyRequest<{ Body: UserCredentials }>,
+  request: FastifyRequest<{ Body: LoginBody }>,
   reply: FastifyReply,
 ): Promise<TokenResponse> => {
-  const { email, password }: UserCredentials = request.body;
+  const { email, password }: LoginBody = request.body;
 
   const user: UserDB = await verifyCredentials(email, password);
 
@@ -44,7 +45,7 @@ export const login = async (
 export const getCurrentUser = async (request: FastifyRequest): Promise<UserResponse> => {
   const userId: string = request.user.sub;
 
-  const user: UserDB = await findUser(userId);
+  const user: UserDB = await findAuthenticatedUser(userId);
 
   return toUserResponse(user);
 };

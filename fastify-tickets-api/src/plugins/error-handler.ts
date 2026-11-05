@@ -7,32 +7,50 @@ import {
   DomainError,
   InvalidCredentialsError,
   NotFoundError,
+  UnknownUserError,
 } from '../common/errors/index.js';
 import type { AppInstance, DomainErrorClass } from '../common/types/index.js';
 
-type ErrorWithCode = { errorClass: DomainErrorClass; statusCode: number };
+type ErrorStatusMapping = { errorClass: DomainErrorClass; statusCode: number };
 
-const errorStatusCodes: ErrorWithCode[] = [
+// order matters: subclasses must come before their parent classes
+const errorStatusMappings: readonly ErrorStatusMapping[] = [
   { errorClass: InvalidCredentialsError, statusCode: 401 },
+  { errorClass: UnknownUserError, statusCode: 401 },
   { errorClass: NotFoundError, statusCode: 404 },
   { errorClass: ConflictError, statusCode: 409 },
 ];
 
+const isClientError = (error: Error): boolean => {
+  if ('statusCode' in error && typeof error.statusCode === 'number') {
+    return error.statusCode >= 400 && error.statusCode < 500;
+  }
+
+  return false;
+};
+
 const errorHandler: FastifyPluginAsyncTypebox = async (app: AppInstance): Promise<void> => {
-  app.setErrorHandler((error: Error, request: FastifyRequest, _reply: FastifyReply): never => {
-    if (!(error instanceof DomainError)) {
+  app.setErrorHandler((error: Error, request: FastifyRequest, reply: FastifyReply): never => {
+    if (error instanceof DomainError) {
+      const errorStatusMapping: ErrorStatusMapping | undefined = errorStatusMappings.find(
+        (item: ErrorStatusMapping) => error instanceof item.errorClass,
+      );
+
+      if (errorStatusMapping) {
+        // Fastify keeps an explicitly set status when the error is rethrown
+        reply.status(errorStatusMapping.statusCode);
+        throw error;
+      }
+
+      request.log.error({ err: error }, 'DomainError without status mapping');
+    } else if (isClientError(error)) {
       throw error;
+    } else {
+      request.log.error({ err: error }, 'Unexpected error');
     }
 
-    const errorStatusCode: ErrorWithCode | undefined = errorStatusCodes.find(
-      (item: ErrorWithCode) => error instanceof item.errorClass,
-    );
-
-    if (!errorStatusCode) {
-      throw error;
-    }
-
-    throw request.server.httpErrors.createError(errorStatusCode.statusCode, error.message);
+    // 5xx messages may contain SQL and its params, so the client gets a generic error
+    throw request.server.httpErrors.internalServerError();
   });
 };
 

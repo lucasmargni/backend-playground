@@ -1,6 +1,6 @@
 import { asc, eq } from 'drizzle-orm';
 
-import type { SeatDB } from '../common/types/db.js';
+import type { SeatDB } from '../common/types/index.js';
 import { db } from '../db/index.js';
 import { seats } from '../db/schema.js';
 import { findEvent } from './events.js';

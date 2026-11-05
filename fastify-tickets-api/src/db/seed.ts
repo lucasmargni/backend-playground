@@ -1,4 +1,4 @@
-import type { EventDB, NewSeat } from '../common/types/index.js';
+import type { EventDB, NewSeat, Transaction } from '../common/types/index.js';
 import { db, pool } from './index.js';
 import { events, seats } from './schema.js';
 
@@ -8,28 +8,30 @@ const rows: string[] = ['A', 'B', 'C', 'D', 'E'];
 const seatsPerRow: number = 10;
 
 try {
-  const [event]: EventDB[] = await db
-    .insert(events)
-    .values({ name: 'firstEvent', priceCents: 20000, startsAt })
-    .returning();
+  await db.transaction(async (tx: Transaction): Promise<void> => {
+    const [event]: EventDB[] = await tx
+      .insert(events)
+      .values({ name: 'firstEvent', priceCents: 20000, startsAt })
+      .returning();
 
-  if (!event) {
-    throw new Error('Event could not be created');
-  }
-
-  const newSeats: NewSeat[] = [];
-
-  for (const row of rows) {
-    for (let seatNum: number = 1; seatNum <= seatsPerRow; seatNum++) {
-      newSeats.push({
-        eventId: event.id,
-        row,
-        number: seatNum,
-      });
+    if (!event) {
+      throw new Error('Event could not be created');
     }
-  }
 
-  await db.insert(seats).values(newSeats);
+    const newSeats: NewSeat[] = [];
+
+    for (const row of rows) {
+      for (let seatNum: number = 1; seatNum <= seatsPerRow; seatNum++) {
+        newSeats.push({
+          eventId: event.id,
+          row,
+          number: seatNum,
+        });
+      }
+    }
+
+    await tx.insert(seats).values(newSeats);
+  });
 } finally {
   await pool.end();
 }
