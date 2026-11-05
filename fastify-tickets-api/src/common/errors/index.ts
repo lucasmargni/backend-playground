@@ -18,3 +18,9 @@ export class ConflictError extends DomainError {
     super(`There already exists a ${objectName} with the same ${existingAttribute}`);
   }
 }
+
+export class InvalidCredentialsError extends DomainError {
+  constructor() {
+    super('Invalid credentials');
+  }
+}
