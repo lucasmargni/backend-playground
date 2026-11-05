@@ -2,7 +2,7 @@ import { hash, verify } from 'argon2';
 import { DrizzleQueryError, eq } from 'drizzle-orm';
 import { DatabaseError } from 'pg';
 
-import { ConflictError, InvalidCredentialsError } from '../common/errors/index.js';
+import { ConflictError, InvalidCredentialsError, NotFoundError } from '../common/errors/index.js';
 import type { UserDB } from '../common/types/index.js';
 import { db } from '../db/index.js';
 import { users } from '../db/schema.js';
@@ -56,6 +56,16 @@ export const verifyCredentials = async (email: string, password: string): Promis
 
   if (!user || !isVerified) {
     throw new InvalidCredentialsError();
+  }
+
+  return user;
+};
+
+export const findUser = async (userId: string): Promise<UserDB> => {
+  const [user]: UserDB[] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+  if (!user) {
+    throw new NotFoundError('User', userId);
   }
 
   return user;

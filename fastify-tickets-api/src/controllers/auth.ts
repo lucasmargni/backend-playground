@@ -6,7 +6,7 @@ import type {
   UserDB,
   UserResponse,
 } from '../common/types/index.js';
-import { createUser, verifyCredentials } from '../services/users.js';
+import { createUser, findUser, verifyCredentials } from '../services/users.js';
 
 const toUserResponse = (user: UserDB): UserResponse => {
   return {
@@ -39,4 +39,12 @@ export const login = async (
   const token: string = await reply.jwtSign({ sub: user.id });
 
   return { token };
+};
+
+export const getCurrentUser = async (request: FastifyRequest): Promise<UserResponse> => {
+  const userId: string = request.user.sub;
+
+  const user: UserDB = await findUser(userId);
+
+  return toUserResponse(user);
 };

@@ -1,5 +1,6 @@
 import fastifyJwt from '@fastify/jwt';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import type { FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
 import type { AppInstance } from '../common/types/index.js';
@@ -15,3 +16,7 @@ const jwt: FastifyPluginAsyncTypebox = async (app: AppInstance): Promise<void> =
 };
 
 export const jwtPlugin: FastifyPluginAsyncTypebox = fp(jwt);
+
+export const authenticate = async (request: FastifyRequest): Promise<void> => {
+  await request.jwtVerify();
+};
