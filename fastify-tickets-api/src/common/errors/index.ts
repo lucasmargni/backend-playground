@@ -13,7 +13,17 @@ export class NotFoundError extends DomainError {
   }
 }
 
-export class ConflictError extends DomainError {
+export class SeatsNotFoundError extends NotFoundError {
+  public readonly seatIds: readonly string[];
+
+  constructor(seatIds: readonly string[]) {
+    super('Seats', seatIds.join(', '));
+
+    this.seatIds = seatIds;
+  }
+}
+
+export class DuplicateError extends DomainError {
   constructor(objectName: string, existingAttribute: string) {
     super(`There already exists a ${objectName} with the same ${existingAttribute}`);
   }
@@ -22,6 +32,16 @@ export class ConflictError extends DomainError {
 export class InvalidCredentialsError extends DomainError {
   constructor() {
     super('Invalid credentials');
+  }
+}
+
+export class SeatsUnavailableError extends DomainError {
+  public readonly seatIds: readonly string[];
+
+  constructor(seatIds: readonly string[]) {
+    super(`Seats ${seatIds.join(', ')} are not available`);
+
+    this.seatIds = seatIds;
   }
 }
 

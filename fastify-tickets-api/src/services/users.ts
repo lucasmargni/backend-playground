@@ -3,7 +3,7 @@ import { DrizzleQueryError, eq } from 'drizzle-orm';
 import { DatabaseError } from 'pg';
 
 import {
-  ConflictError,
+  DuplicateError,
   InvalidCredentialsError,
   UnknownUserError,
 } from '../common/errors/index.js';
@@ -39,7 +39,7 @@ export const createUser = async (email: string, password: string): Promise<UserD
       error.cause instanceof DatabaseError &&
       error.cause.code === UNIQUE_VIOLATION
     ) {
-      throw new ConflictError('User', 'email');
+      throw new DuplicateError('User', 'email');
     }
 
     throw error;

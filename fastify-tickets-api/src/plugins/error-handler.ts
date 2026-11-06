@@ -3,10 +3,11 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
 import {
-  ConflictError,
   DomainError,
+  DuplicateError,
   InvalidCredentialsError,
   NotFoundError,
+  SeatsUnavailableError,
   UnknownUserError,
 } from '../common/errors/index.js';
 import type { AppInstance, DomainErrorClass } from '../common/types/index.js';
@@ -18,7 +19,8 @@ const errorStatusMappings: readonly ErrorStatusMapping[] = [
   { errorClass: InvalidCredentialsError, statusCode: 401 },
   { errorClass: UnknownUserError, statusCode: 401 },
   { errorClass: NotFoundError, statusCode: 404 },
-  { errorClass: ConflictError, statusCode: 409 },
+  { errorClass: DuplicateError, statusCode: 409 },
+  { errorClass: SeatsUnavailableError, statusCode: 409 },
 ];
 
 const isClientError = (error: Error): boolean => {
