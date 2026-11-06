@@ -1,6 +1,5 @@
 import { hash, verify } from 'argon2';
-import { DrizzleQueryError, eq } from 'drizzle-orm';
-import { DatabaseError } from 'pg';
+import { eq } from 'drizzle-orm';
 
 import {
   DuplicateError,
@@ -8,10 +7,10 @@ import {
   UnknownUserError,
 } from '../common/errors/index.js';
 import type { UserDB } from '../common/types/index.js';
+import { hasPostgresErrorCode, UNIQUE_VIOLATION } from '../db/errors.js';
 import { db } from '../db/index.js';
 import { users } from '../db/schema.js';
 
-const UNIQUE_VIOLATION: string = '23505';
 const DUMMY_HASH: string = await hash('timing-attack-dummy-password');
 
 const normalizeEmail = (email: string): string => {
@@ -34,11 +33,7 @@ export const createUser = async (email: string, password: string): Promise<UserD
 
     return user;
   } catch (error: unknown) {
-    if (
-      error instanceof DrizzleQueryError &&
-      error.cause instanceof DatabaseError &&
-      error.cause.code === UNIQUE_VIOLATION
-    ) {
+    if (hasPostgresErrorCode(error, UNIQUE_VIOLATION)) {
       throw new DuplicateError('User', 'email');
     }
 
