@@ -13,7 +13,20 @@ import { eventsRoutes } from './routes/events.js';
 const HealthSchema = Type.Object({ status: Type.String() });
 type HealthResponse = Static<typeof HealthSchema>;
 
-const enableBenchmarkRoutes: boolean = process.env.ENABLE_BENCHMARK_ROUTES === 'true';
+const BENCHMARK_ROUTES_PREFIX: string = '/benchmark/reservations';
+const benchmarkRoutesEnv: string | undefined = process.env.ENABLE_BENCHMARK_ROUTES;
+
+if (
+  benchmarkRoutesEnv !== undefined &&
+  benchmarkRoutesEnv !== 'true' &&
+  benchmarkRoutesEnv !== 'false'
+) {
+  throw new Error(
+    `Invalid ENABLE_BENCHMARK_ROUTES "${benchmarkRoutesEnv}", expected one of: "true", "false" or unset`,
+  );
+}
+
+const enableBenchmarkRoutes: boolean = benchmarkRoutesEnv === 'true';
 
 export const buildApp = (): AppInstance => {
   const app: AppInstance = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
@@ -29,7 +42,11 @@ export const buildApp = (): AppInstance => {
   app.register(authRoutes, { prefix: '/auth' });
 
   if (enableBenchmarkRoutes) {
-    app.register(benchmarkRoutes, { prefix: '/benchmark/reservations' });
+    app.register(benchmarkRoutes, { prefix: BENCHMARK_ROUTES_PREFIX });
+    app.log.warn(
+      { prefix: BENCHMARK_ROUTES_PREFIX },
+      `Benchmark routes enabled, never enable them in production`,
+    );
   }
 
   return app;
