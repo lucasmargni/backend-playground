@@ -7,7 +7,7 @@ import {
   UnknownUserError,
 } from '../common/errors/index.js';
 import type { UserDB } from '../common/types/index.js';
-import { hasPostgresErrorCode, UNIQUE_VIOLATION } from '../db/errors.js';
+import { isPostgresViolation, UNIQUE_VIOLATION, USERS_EMAIL_UNIQUE } from '../db/errors.js';
 import { db } from '../db/index.js';
 import { users } from '../db/schema.js';
 
@@ -33,7 +33,7 @@ export const createUser = async (email: string, password: string): Promise<UserD
 
     return user;
   } catch (error: unknown) {
-    if (hasPostgresErrorCode(error, UNIQUE_VIOLATION)) {
+    if (isPostgresViolation(error, { code: UNIQUE_VIOLATION, constraint: USERS_EMAIL_UNIQUE })) {
       throw new DuplicateError('User', 'email');
     }
 

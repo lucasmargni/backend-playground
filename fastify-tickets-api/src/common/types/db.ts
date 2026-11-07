@@ -11,6 +11,11 @@ import type {
 
 export type Transaction = Parameters<Parameters<NodePgDatabase['transaction']>[0]>[0];
 
+export type PostgresViolation = {
+  code: string;
+  constraint?: string;
+};
+
 export type NewUser = typeof users.$inferInsert;
 export type NewEvent = typeof events.$inferInsert;
 export type NewSeat = typeof seats.$inferInsert;

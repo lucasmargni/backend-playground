@@ -14,7 +14,7 @@ import type {
   SeatDB,
   Transaction,
 } from '../common/types/index.js';
-import { FOREIGN_KEY_VIOLATION, hasPostgresErrorCode } from '../db/errors.js';
+import { FOREIGN_KEY_VIOLATION, isPostgresViolation, RESERVATIONS_USER_FK } from '../db/errors.js';
 import { db } from '../db/index.js';
 import { reservations, reservationSeats, seats } from '../db/schema.js';
 import { findEvent } from './events.js';
@@ -79,7 +79,9 @@ export const createNaiveReservation = async ({
       return { reservation, seatIds, totalCents: event.priceCents * foundSeats.length };
     });
   } catch (error: unknown) {
-    if (hasPostgresErrorCode(error, FOREIGN_KEY_VIOLATION)) {
+    if (
+      isPostgresViolation(error, { code: FOREIGN_KEY_VIOLATION, constraint: RESERVATIONS_USER_FK })
+    ) {
       throw new UnknownUserError();
     }
 

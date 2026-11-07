@@ -45,7 +45,7 @@ export const buildApp = (): AppInstance => {
     app.register(benchmarkRoutes, { prefix: BENCHMARK_ROUTES_PREFIX });
     app.log.warn(
       { prefix: BENCHMARK_ROUTES_PREFIX },
-      `Benchmark routes enabled, never enable them in production`,
+      'Benchmark routes enabled, never enable them in production',
     );
   }
 
