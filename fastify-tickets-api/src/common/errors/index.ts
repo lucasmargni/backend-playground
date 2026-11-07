@@ -19,7 +19,7 @@ export class SeatsNotFoundError extends NotFoundError {
   constructor(seatIds: readonly string[]) {
     super('Seats', seatIds.join(', '));
 
-    this.seatIds = seatIds;
+    this.seatIds = [...seatIds];
   }
 }
 
@@ -41,7 +41,7 @@ export class SeatsUnavailableError extends DomainError {
   constructor(seatIds: readonly string[]) {
     super(`Seats ${seatIds.join(', ')} are not available`);
 
-    this.seatIds = seatIds;
+    this.seatIds = [...seatIds];
   }
 }
 

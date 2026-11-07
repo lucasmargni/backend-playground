@@ -1,6 +1,6 @@
 import { Type } from 'typebox';
 
-export const MAX_SEATS_PER_RESERVATION = 10;
+export const MAX_SEATS_PER_RESERVATION: number = 10;
 
 export const ReservationStatusSchema = Type.Union([
   Type.Literal('pending'),

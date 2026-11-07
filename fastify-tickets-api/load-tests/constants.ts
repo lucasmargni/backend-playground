@@ -6,8 +6,8 @@ export const USER_EMAIL_PREFIX: string = 'load-user';
 export const USER_EMAIL_DOMAIN: string = 'test.com';
 export const USER_PASSWORD: string = 'super-secret-pass';
 export const TOTAL_VIRTUAL_USERS: number = 100;
-export const MIN_SEATS_PER_REQUEST: number = 1;
-export const MAX_SEATS_PER_REQUEST: number = 3;
+export const MIN_RANDOM_SEATS: number = 1;
+export const MAX_RANDOM_SEATS: number = 3;
 export const JSON_REQUEST_PARAMS: Params = { headers: { 'Content-Type': 'application/json' } };
 export const ITERATIONS_PER_VU: number = 1;
 

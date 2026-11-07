@@ -30,31 +30,31 @@ export const createNaiveReservation = async ({
     const event: EventDB = await findEvent(eventId);
 
     return await db.transaction(async (tx: Transaction): Promise<ReservationResult> => {
-      const conditionSeats: SQL | undefined = and(
+      const condition: SQL | undefined = and(
         eq(seats.eventId, eventId),
         inArray(seats.id, seatIds),
       );
 
-      const foundSeats: SeatDB[] = await tx.select().from(seats).where(conditionSeats);
+      const foundSeats: SeatDB[] = await tx.select().from(seats).where(condition);
       const foundSeatIds: Set<string> = new Set(foundSeats.map((seat: SeatDB): string => seat.id));
 
-      const missingSeats: string[] = seatIds.filter(
+      const missingSeatIds: string[] = seatIds.filter(
         (seatId: string): boolean => !foundSeatIds.has(seatId),
       );
 
-      if (missingSeats.length > 0) {
-        throw new SeatsNotFoundError(missingSeats);
+      if (missingSeatIds.length > 0) {
+        throw new SeatsNotFoundError(missingSeatIds);
       }
 
-      const unavailableSeats: string[] = foundSeats
+      const unavailableSeatIds: string[] = foundSeats
         .filter((seat: SeatDB): boolean => seat.status !== 'available')
         .map((seat: SeatDB): string => seat.id);
 
-      if (unavailableSeats.length > 0) {
-        throw new SeatsUnavailableError(unavailableSeats);
+      if (unavailableSeatIds.length > 0) {
+        throw new SeatsUnavailableError(unavailableSeatIds);
       }
 
-      await tx.update(seats).set({ status: 'held' }).where(conditionSeats);
+      await tx.update(seats).set({ status: 'held' }).where(condition);
 
       const [reservation]: ReservationDB[] = await tx
         .insert(reservations)
@@ -76,7 +76,7 @@ export const createNaiveReservation = async ({
         })),
       );
 
-      return { reservation, seatIds, totalCents: event.priceCents * foundSeats.length };
+      return { reservation, seatIds, totalCents: event.priceCents * seatIds.length };
     });
   } catch (error: unknown) {
     if (

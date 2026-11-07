@@ -10,8 +10,8 @@ import {
   HTTP_OK,
   ITERATIONS_PER_VU,
   JSON_REQUEST_PARAMS,
-  MAX_SEATS_PER_REQUEST,
-  MIN_SEATS_PER_REQUEST,
+  MAX_RANDOM_SEATS,
+  MIN_RANDOM_SEATS,
   STRATEGY_NAMES,
   TOTAL_USERS,
   TOTAL_VIRTUAL_USERS,
@@ -197,7 +197,7 @@ export const sameSeat = (data: SetupData): void => {
 };
 
 export const randomSeats = (data: SetupData): void => {
-  const seatCount: number = randomIntBetween(MIN_SEATS_PER_REQUEST, MAX_SEATS_PER_REQUEST);
+  const seatCount: number = randomIntBetween(MIN_RANDOM_SEATS, MAX_RANDOM_SEATS);
 
   const randomSeatIds: string[] = pickRandomSeatIds(data.seatIds, seatCount);
 
