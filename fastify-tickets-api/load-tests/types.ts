@@ -1,3 +1,5 @@
+import type { STRATEGY_NAMES } from './constants.ts';
+
 export type EventItem = {
   id: string;
   priceCents: number;
@@ -41,3 +43,5 @@ export type SetupData = {
 };
 
 export type ScenarioName = 'same-seat' | 'random-seats';
+
+export type StrategyName = (typeof STRATEGY_NAMES)[number];

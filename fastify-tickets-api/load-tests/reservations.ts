@@ -12,6 +12,7 @@ import {
   JSON_REQUEST_PARAMS,
   MAX_SEATS_PER_REQUEST,
   MIN_SEATS_PER_REQUEST,
+  STRATEGY_NAMES,
   TOTAL_USERS,
   TOTAL_VIRTUAL_USERS,
   USER_EMAIL_DOMAIN,
@@ -27,11 +28,18 @@ import type {
   SeatItem,
   SeatList,
   SetupData,
+  StrategyName,
   TokenResponse,
 } from './types.ts';
 
 const isScenarioName = (value: string | undefined): value is ScenarioName => {
   return value !== undefined && Object.hasOwn(scenarioMap, value);
+};
+
+const isStrategyName = (value: string | undefined): value is StrategyName => {
+  const strategyNames: readonly string[] = STRATEGY_NAMES;
+
+  return value !== undefined && strategyNames.includes(value);
 };
 
 const expectStatus = (response: Response, expectedStatus: number, description: string): void => {
@@ -55,7 +63,7 @@ const reserveSeats = (data: SetupData, seatIds: string[]): void => {
 
   const body: ReservationBody = { eventId: data.eventId, seatIds };
   const response: Response = http.post(
-    `${BASE_URL}/benchmark/reservations/${strategy}`,
+    `${BASE_URL}/benchmark/reservations/${strategyName}`,
     JSON.stringify(body),
     params,
   );
@@ -99,7 +107,7 @@ const scenarioMap: Record<ScenarioName, Scenario> = {
 };
 
 const scenarioName: string | undefined = __ENV.SCENARIO;
-const strategy: string | undefined = __ENV.STRATEGY;
+const strategyName: string | undefined = __ENV.STRATEGY;
 
 if (!isScenarioName(scenarioName)) {
   throw new Error(
@@ -107,14 +115,19 @@ if (!isScenarioName(scenarioName)) {
   );
 }
 
-if (!strategy) {
-  throw new Error('STRATEGY not defined');
+if (!isStrategyName(strategyName)) {
+  throw new Error(
+    `Invalid STRATEGY ${strategyName}, expected one of: ${STRATEGY_NAMES.join(', ')}`,
+  );
 }
 
 const reservationsCreated: Counter = new Counter('reservations_created');
 const seatsReserved: Counter = new Counter('seats_reserved');
 
-export const options: Options = { scenarios: { [scenarioName]: scenarioMap[scenarioName] } };
+export const options: Options = {
+  scenarios: { [scenarioName]: scenarioMap[scenarioName] },
+  thresholds: { checks: ['rate==1'] },
+};
 
 export const setup = (): SetupData => {
   const tokens: string[] = [];
@@ -137,7 +150,12 @@ export const setup = (): SetupData => {
     );
     expectStatus(loginResponse, HTTP_OK, `Login of ${email} failed`);
 
-    const token: string = (loginResponse.json() as TokenResponse).token;
+    const token: unknown = (loginResponse.json() as TokenResponse).token;
+
+    if (typeof token !== 'string' || token.length === 0) {
+      fail(`Token of ${email} not valid`);
+    }
+
     tokens.push(token);
   }
 
@@ -154,6 +172,10 @@ export const setup = (): SetupData => {
   expectStatus(seatsResponse, HTTP_OK, 'Seats lookup failed');
 
   const seats: SeatItem[] = (seatsResponse.json() as SeatList).seats;
+
+  if (seats.length === 0) {
+    fail('No seats found in the event, run npm run db:reset first');
+  }
 
   if (seats.some((seat: SeatItem): boolean => seat.status !== 'available')) {
     fail('All seats must have status "available", run npm run db:reset first');

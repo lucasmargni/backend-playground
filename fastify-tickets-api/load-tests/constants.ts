@@ -14,3 +14,5 @@ export const ITERATIONS_PER_VU: number = 1;
 export const HTTP_OK: number = 200;
 export const HTTP_CREATED: number = 201;
 export const HTTP_CONFLICT: number = 409;
+
+export const STRATEGY_NAMES = ['naive'] as const;
