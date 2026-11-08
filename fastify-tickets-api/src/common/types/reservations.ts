@@ -13,6 +13,7 @@ export type ReservationStatus = Static<typeof ReservationStatusSchema>;
 
 export type CreateReservationBody = Static<typeof CreateReservationBodySchema>;
 
+/** `seatIds` holds 1 to `MAX_SEATS_PER_RESERVATION` unique ids, validated by the route schema. */
 export type CreateReservationInput = {
   userId: string;
   eventId: string;
