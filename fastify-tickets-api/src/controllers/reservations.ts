@@ -2,10 +2,15 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import type {
   CreateReservationBody,
+  CreateReservationService,
   ReservationResponse,
   ReservationResult,
 } from '../common/types/index.js';
-import { createNaiveReservation } from '../services/reservations-naive.js';
+
+type PostReservationHandler = (
+  request: FastifyRequest<{ Body: CreateReservationBody }>,
+  reply: FastifyReply,
+) => Promise<ReservationResponse>;
 
 const toReservationResponse = (reservationResult: ReservationResult): ReservationResponse => {
   return {
@@ -19,20 +24,24 @@ const toReservationResponse = (reservationResult: ReservationResult): Reservatio
   };
 };
 
-export const postNaiveReservation = async (
-  request: FastifyRequest<{ Body: CreateReservationBody }>,
-  reply: FastifyReply,
-): Promise<ReservationResponse> => {
-  const { eventId, seatIds }: CreateReservationBody = request.body;
-  const userId: string = request.user.sub;
+export const makePostReservation = (
+  createReservation: CreateReservationService,
+): PostReservationHandler => {
+  return async (
+    request: FastifyRequest<{ Body: CreateReservationBody }>,
+    reply: FastifyReply,
+  ): Promise<ReservationResponse> => {
+    const { eventId, seatIds }: CreateReservationBody = request.body;
+    const userId: string = request.user.sub;
 
-  const reservationResult: ReservationResult = await createNaiveReservation({
-    userId,
-    eventId,
-    seatIds,
-  });
+    const reservationResult: ReservationResult = await createReservation({
+      userId,
+      eventId,
+      seatIds,
+    });
 
-  reply.status(201);
+    reply.status(201);
 
-  return toReservationResponse(reservationResult);
+    return toReservationResponse(reservationResult);
+  };
 };

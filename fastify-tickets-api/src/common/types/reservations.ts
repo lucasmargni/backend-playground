@@ -25,3 +25,7 @@ export type ReservationResult = {
   seatIds: string[];
   totalCents: number;
 };
+
+export type CreateReservationService = (
+  input: CreateReservationInput,
+) => Promise<ReservationResult>;

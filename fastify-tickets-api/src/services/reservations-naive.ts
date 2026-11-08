@@ -2,6 +2,7 @@ import { and, eq, inArray, type SQL } from 'drizzle-orm';
 
 import type {
   CreateReservationInput,
+  CreateReservationService,
   EventDB,
   ReservationDB,
   ReservationResult,
@@ -17,7 +18,7 @@ import {
   toReservationError,
 } from './reservations-shared.js';
 
-export const createNaiveReservation = async ({
+export const createNaiveReservation: CreateReservationService = async ({
   userId,
   eventId,
   seatIds,
