@@ -7,8 +7,10 @@ import {
 } from '../common/errors/index.js';
 import type {
   CreateReservationInput,
+  EventDB,
   NewReservationSeat,
   ReservationDB,
+  ReservationResult,
   SeatDB,
   Transaction,
 } from '../common/types/index.js';
@@ -18,10 +20,9 @@ import { reservations, reservationSeats } from '../db/schema.js';
 const HOLD_DURATION_MINUTES: number = 15;
 
 export const assertSeatsReservable = (seatIds: string[], foundSeats: SeatDB[]): void => {
-  const foundSeatIds: Set<string> = new Set(foundSeats.map((seat: SeatDB): string => seat.id));
-
-  const missingSeatIds: string[] = seatIds.filter(
-    (seatId: string): boolean => !foundSeatIds.has(seatId),
+  const missingSeatIds: string[] = findMissingSeatIds(
+    seatIds,
+    foundSeats.map((seat: SeatDB): string => seat.id),
   );
 
   if (missingSeatIds.length > 0) {
@@ -64,6 +65,12 @@ export const insertReservation = async (
   return reservation;
 };
 
+export const findMissingSeatIds = (seatIds: string[], presentSeatIds: string[]): string[] => {
+  const presentSeatIdsSet: Set<string> = new Set(presentSeatIds);
+
+  return seatIds.filter((seatId: string): boolean => !presentSeatIdsSet.has(seatId));
+};
+
 export const toReservationError = (error: unknown): unknown => {
   if (
     isPostgresViolation(error, { code: FOREIGN_KEY_VIOLATION, constraint: RESERVATIONS_USER_FK })
@@ -72,4 +79,12 @@ export const toReservationError = (error: unknown): unknown => {
   }
 
   return error;
+};
+
+export const toReservationResult = (
+  reservation: ReservationDB,
+  seatIds: string[],
+  event: EventDB,
+): ReservationResult => {
+  return { reservation, seatIds, totalCents: event.priceCents * seatIds.length };
 };

@@ -25,6 +25,10 @@ export const updateSeatStatus = async (
   condition: SQL | undefined,
   status: SeatStatusDB,
 ): Promise<string[]> => {
+  if (condition === undefined) {
+    throw new Error('updateSeatStatus requires a condition');
+  }
+
   const rows: SeatIdRow[] = await tx
     .update(seats)
     .set({ status, version: sql`${seats.version} + 1` })

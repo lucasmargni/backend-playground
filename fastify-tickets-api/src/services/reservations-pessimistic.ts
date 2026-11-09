@@ -16,6 +16,7 @@ import {
   assertSeatsReservable,
   insertReservation,
   toReservationError,
+  toReservationResult,
 } from './reservations-shared.js';
 import { updateSeatStatus } from './seats.js';
 
@@ -41,11 +42,17 @@ export const createPessimisticReservation: CreateReservationService = async ({
         .for('update');
       assertSeatsReservable(seatIds, foundSeats);
 
-      await updateSeatStatus(tx, condition, 'held');
+      const updatedSeatIds: string[] = await updateSeatStatus(tx, condition, 'held');
+
+      if (updatedSeatIds.length !== seatIds.length) {
+        throw new Error(
+          `Pessimistic hold updated ${updatedSeatIds.length} of ${seatIds.length} locked seats`,
+        );
+      }
 
       const reservation: ReservationDB = await insertReservation(tx, { userId, eventId, seatIds });
 
-      return { reservation, seatIds, totalCents: event.priceCents * seatIds.length };
+      return toReservationResult(reservation, seatIds, event);
     });
   } catch (error: unknown) {
     throw toReservationError(error);

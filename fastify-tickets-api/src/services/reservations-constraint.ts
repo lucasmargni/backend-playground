@@ -19,6 +19,7 @@ import {
   assertSeatsReservable,
   insertReservation,
   toReservationError,
+  toReservationResult,
 } from './reservations-shared.js';
 import { updateSeatStatus } from './seats.js';
 
@@ -27,12 +28,16 @@ type SeatHoldRow = {
 };
 
 const findHeldSeatIds = async (seatIds: string[]): Promise<string[]> => {
-  const rows: SeatHoldRow[] = await db
-    .select({ seatId: seatHolds.seatId })
-    .from(seatHolds)
-    .where(inArray(seatHolds.seatId, seatIds));
+  try {
+    const rows: SeatHoldRow[] = await db
+      .select({ seatId: seatHolds.seatId })
+      .from(seatHolds)
+      .where(inArray(seatHolds.seatId, seatIds));
 
-  return rows.map((row: SeatHoldRow): string => row.seatId);
+    return rows.map((row: SeatHoldRow): string => row.seatId);
+  } catch (error: unknown) {
+    throw new Error('Failed to look up held seats after a seat_holds conflict', { cause: error });
+  }
 };
 
 export const createConstraintReservation: CreateReservationService = async ({
@@ -62,7 +67,7 @@ export const createConstraintReservation: CreateReservationService = async ({
           seatIds.map((seatId: string): NewSeatHold => ({ seatId, reservationId: reservation.id })),
         );
 
-      return { reservation, seatIds, totalCents: event.priceCents * seatIds.length };
+      return toReservationResult(reservation, seatIds, event);
     });
   } catch (error: unknown) {
     if (isPostgresViolation(error, { code: UNIQUE_VIOLATION, constraint: SEAT_HOLDS_PKEY })) {

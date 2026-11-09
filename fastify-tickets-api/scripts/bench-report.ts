@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 
 type K6Metric = {
-  values: Record<string, number>;
+  values?: Record<string, unknown>;
 };
 
 type K6Summary = {
@@ -24,8 +24,14 @@ type BenchmarkRow = {
 
 type MetricLookup = {
   summary: K6Summary;
+  summaryPath: string;
   metricName: string;
   stat: string;
+};
+
+type JsonFile = {
+  text: string;
+  path: string;
 };
 
 const RESULTS_DIR: string = 'load-tests/results';
@@ -40,6 +46,16 @@ const SEATS_METRIC: string = 'seats_reserved';
 const COUNT_STAT: string = 'count';
 const P95_STAT: string = 'p(95)';
 const AVG_STAT: string = 'avg';
+
+const DUPLICATES_COUNT_PATTERN: RegExp = /^\d+$/;
+
+const parseJsonFile = ({ text, path }: JsonFile): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch (error: unknown) {
+    throw new Error(`Invalid JSON in ${path}`, { cause: error });
+  }
+};
 
 const isK6Summary = (value: unknown): value is K6Summary => {
   return (
@@ -57,12 +73,27 @@ const toReservationDurationMetric = (status?: number): string => {
   return `http_req_duration{name:${RESERVATION_REQUEST_NAME}${statusFilter}}`;
 };
 
-const readMetricValue = ({ summary, metricName, stat }: MetricLookup): number | null => {
+const readMetricValue = ({
+  summary,
+  summaryPath,
+  metricName,
+  stat,
+}: MetricLookup): number | null => {
   const metric: K6Metric | undefined = summary.metrics[metricName];
 
-  const metricValue: number | undefined = metric?.values[stat];
+  const metricValue: unknown = metric?.values?.[stat];
 
-  return metricValue !== undefined ? Math.round(metricValue) : null;
+  if (metricValue === undefined) {
+    return null;
+  }
+
+  if (typeof metricValue !== 'number') {
+    throw new Error(
+      `Invalid metric value in ${summaryPath}: ${metricName} "${stat}" is ${typeof metricValue}, expected number`,
+    );
+  }
+
+  return Math.round(metricValue);
 };
 
 const readRun = async (runName: string): Promise<BenchmarkRow> => {
@@ -80,17 +111,19 @@ const readRun = async (runName: string): Promise<BenchmarkRow> => {
     readFile(duplicatesPath, 'utf8'),
   ]);
 
-  const parsedSummary: unknown = JSON.parse(summaryText);
+  const parsedSummary: unknown = parseJsonFile({ text: summaryText, path: summaryPath });
 
   if (!isK6Summary(parsedSummary)) {
     throw new Error(`Invalid k6 summary in ${summaryPath}: missing "metrics" object`);
   }
 
-  const duplicatedSeats: number = Number(duplicatesText.trim());
+  const trimmedDuplicatesText: string = duplicatesText.trim();
 
-  if (!Number.isInteger(duplicatedSeats)) {
+  if (!DUPLICATES_COUNT_PATTERN.test(trimmedDuplicatesText)) {
     throw new Error(`Invalid duplicates count in ${duplicatesPath}: "${duplicatesText}"`);
   }
+
+  const duplicatedSeats: number = Number(trimmedDuplicatesText);
 
   return {
     scenario,
@@ -98,38 +131,45 @@ const readRun = async (runName: string): Promise<BenchmarkRow> => {
     reservations:
       readMetricValue({
         summary: parsedSummary,
+        summaryPath,
         metricName: RESERVATIONS_METRIC,
         stat: COUNT_STAT,
       }) ?? 0,
     seatRows:
       readMetricValue({
         summary: parsedSummary,
+        summaryPath,
         metricName: SEATS_METRIC,
         stat: COUNT_STAT,
       }) ?? 0,
     duplicatedSeats,
     p95AllMs: readMetricValue({
       summary: parsedSummary,
+      summaryPath,
       metricName: toReservationDurationMetric(),
       stat: P95_STAT,
     }),
     p95CreatedMs: readMetricValue({
       summary: parsedSummary,
+      summaryPath,
       metricName: toReservationDurationMetric(HTTP_CREATED),
       stat: P95_STAT,
     }),
     p95ConflictMs: readMetricValue({
       summary: parsedSummary,
+      summaryPath,
       metricName: toReservationDurationMetric(HTTP_CONFLICT),
       stat: P95_STAT,
     }),
     avgCreatedMs: readMetricValue({
       summary: parsedSummary,
+      summaryPath,
       metricName: toReservationDurationMetric(HTTP_CREATED),
       stat: AVG_STAT,
     }),
     avgConflictMs: readMetricValue({
       summary: parsedSummary,
+      summaryPath,
       metricName: toReservationDurationMetric(HTTP_CONFLICT),
       stat: AVG_STAT,
     }),

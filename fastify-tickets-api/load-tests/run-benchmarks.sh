@@ -10,12 +10,13 @@ RESULTS_DIR=load-tests/results
 K6_IMAGE=grafana/k6:2.3.0
 API_URL=http://localhost:3000
 
+sudo docker compose up -d --wait
+
 if ! curl -sf "${API_URL}/events" > /dev/null; then
   echo "API is not reachable at ${API_URL}. Start it with 'npm run dev' (ENABLE_BENCHMARK_ROUTES=true)." >&2
   exit 1
 fi
 
-sudo docker compose up -d --wait
 rm -rf "$RESULTS_DIR"
 mkdir -p "$RESULTS_DIR"
 

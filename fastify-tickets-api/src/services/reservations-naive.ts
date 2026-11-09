@@ -16,6 +16,7 @@ import {
   assertSeatsReservable,
   insertReservation,
   toReservationError,
+  toReservationResult,
 } from './reservations-shared.js';
 import { updateSeatStatus } from './seats.js';
 
@@ -40,7 +41,7 @@ export const createNaiveReservation: CreateReservationService = async ({
 
       const reservation: ReservationDB = await insertReservation(tx, { userId, eventId, seatIds });
 
-      return { reservation, seatIds, totalCents: event.priceCents * seatIds.length };
+      return toReservationResult(reservation, seatIds, event);
     });
   } catch (error: unknown) {
     throw toReservationError(error);

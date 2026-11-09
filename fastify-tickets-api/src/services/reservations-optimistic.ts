@@ -15,8 +15,10 @@ import { seats } from '../db/schema.js';
 import { findEvent } from './events.js';
 import {
   assertSeatsReservable,
+  findMissingSeatIds,
   insertReservation,
   toReservationError,
+  toReservationResult,
 } from './reservations-shared.js';
 import { updateSeatStatus } from './seats.js';
 
@@ -44,11 +46,7 @@ export const createOptimisticReservation: CreateReservationService = async ({
       );
 
       const updatedSeatIds: string[] = await updateSeatStatus(tx, updateCondition, 'held');
-      const updatedSeatIdsSet: Set<string> = new Set(updatedSeatIds);
-
-      const unavailableSeatIds: string[] = seatIds.filter(
-        (seatId: string): boolean => !updatedSeatIdsSet.has(seatId),
-      );
+      const unavailableSeatIds: string[] = findMissingSeatIds(seatIds, updatedSeatIds);
 
       if (unavailableSeatIds.length > 0) {
         throw new SeatsUnavailableError(unavailableSeatIds);
@@ -56,7 +54,7 @@ export const createOptimisticReservation: CreateReservationService = async ({
 
       const reservation: ReservationDB = await insertReservation(tx, { userId, eventId, seatIds });
 
-      return { reservation, seatIds, totalCents: event.priceCents * seatIds.length };
+      return toReservationResult(reservation, seatIds, event);
     });
   } catch (error: unknown) {
     throw toReservationError(error);
