@@ -15,6 +15,13 @@
       "when": 1793823882802,
       "tag": "0001_slippery_expediter",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794232931191,
+      "tag": "0002_gifted_dark_phoenix",
+      "breakpoints": true
     }
   ]
 }

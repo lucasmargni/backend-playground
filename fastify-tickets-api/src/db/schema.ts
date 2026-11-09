@@ -51,6 +51,7 @@ export const seats = pgTable(
     row: text('row').notNull(),
     number: integer('number').notNull(),
     status: seatStatus('status').notNull().default('available'),
+    version: integer('version').notNull().default(0),
   },
   (table) => [
     unique().on(table.eventId, table.row, table.number),

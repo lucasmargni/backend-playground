@@ -17,6 +17,7 @@ import {
   insertReservation,
   toReservationError,
 } from './reservations-shared.js';
+import { updateSeatStatus } from './seats.js';
 
 export const createPessimisticReservation: CreateReservationService = async ({
   userId,
@@ -40,7 +41,7 @@ export const createPessimisticReservation: CreateReservationService = async ({
         .for('update');
       assertSeatsReservable(seatIds, foundSeats);
 
-      await tx.update(seats).set({ status: 'held' }).where(condition);
+      await updateSeatStatus(tx, condition, 'held');
 
       const reservation: ReservationDB = await insertReservation(tx, { userId, eventId, seatIds });
 

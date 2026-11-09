@@ -17,6 +17,7 @@ import {
   insertReservation,
   toReservationError,
 } from './reservations-shared.js';
+import { updateSeatStatus } from './seats.js';
 
 export const createNaiveReservation: CreateReservationService = async ({
   userId,
@@ -35,7 +36,7 @@ export const createNaiveReservation: CreateReservationService = async ({
       const foundSeats: SeatDB[] = await tx.select().from(seats).where(condition);
       assertSeatsReservable(seatIds, foundSeats);
 
-      await tx.update(seats).set({ status: 'held' }).where(condition);
+      await updateSeatStatus(tx, condition, 'held');
 
       const reservation: ReservationDB = await insertReservation(tx, { userId, eventId, seatIds });
 
