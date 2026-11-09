@@ -5,6 +5,7 @@ import { makePostReservation } from '../controllers/reservations.js';
 import { authenticate } from '../plugins/jwt.js';
 import { CreateReservationBodySchema, ReservationSchema } from '../schemas/reservations.js';
 import { createNaiveReservation } from '../services/reservations-naive.js';
+import { createPessimisticReservation } from '../services/reservations-pessimistic.js';
 
 export const benchmarkRoutes: FastifyPluginAsyncTypebox = async (
   app: AppInstance,
@@ -15,5 +16,11 @@ export const benchmarkRoutes: FastifyPluginAsyncTypebox = async (
     '/naive',
     { schema: { body: CreateReservationBodySchema, response: { 201: ReservationSchema } } },
     makePostReservation(createNaiveReservation),
+  );
+
+  app.post(
+    '/pessimistic',
+    { schema: { body: CreateReservationBodySchema, response: { 201: ReservationSchema } } },
+    makePostReservation(createPessimisticReservation),
   );
 };
