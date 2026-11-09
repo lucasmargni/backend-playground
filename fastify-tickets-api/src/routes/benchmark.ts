@@ -5,6 +5,7 @@ import type { AppInstance } from '../common/types/index.js';
 import { makePostReservation } from '../controllers/reservations.js';
 import { authenticate } from '../plugins/jwt.js';
 import { CreateReservationBodySchema, ReservationSchema } from '../schemas/reservations.js';
+import { createConstraintReservation } from '../services/reservations-constraint.js';
 import { createNaiveReservation } from '../services/reservations-naive.js';
 import { createOptimisticReservation } from '../services/reservations-optimistic.js';
 import { createPessimisticReservation } from '../services/reservations-pessimistic.js';
@@ -30,5 +31,11 @@ export const benchmarkRoutes: FastifyPluginAsyncTypebox = async (
     '/optimistic',
     reservationRouteOptions,
     makePostReservation(createOptimisticReservation),
+  );
+
+  app.post(
+    '/constraint',
+    reservationRouteOptions,
+    makePostReservation(createConstraintReservation),
   );
 };

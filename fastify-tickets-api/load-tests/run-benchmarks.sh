@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 SCENARIOS=(same-seat random-seats)
-STRATEGIES=(naive pessimistic optimistic)
+STRATEGIES=(naive pessimistic optimistic constraint)
 RESULTS_DIR=load-tests/results
 K6_IMAGE=grafana/k6:2.3.0
 API_URL=http://localhost:3000

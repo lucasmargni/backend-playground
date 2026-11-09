@@ -18,4 +18,4 @@ export const HTTP_CONFLICT: number = 409;
 export const RESERVATION_REQUEST_NAME: string = 'reservation';
 export const DISPLAY_ONLY_THRESHOLD: string = 'max>=0';
 
-export const STRATEGY_NAMES = ['naive', 'pessimistic', 'optimistic'] as const;
+export const STRATEGY_NAMES = ['naive', 'pessimistic', 'optimistic', 'constraint'] as const;

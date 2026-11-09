@@ -1,7 +1,15 @@
 import { sql } from 'drizzle-orm';
 
 import { db, pool } from './index.js';
-import { events, orders, reservations, reservationSeats, seats, users } from './schema.js';
+import {
+  events,
+  orders,
+  reservations,
+  reservationSeats,
+  seatHolds,
+  seats,
+  users,
+} from './schema.js';
 
 const LOCAL_DATABASE_HOSTNAMES: readonly string[] = ['localhost', '127.0.0.1'];
 
@@ -26,7 +34,7 @@ if (!LOCAL_DATABASE_HOSTNAMES.includes(databaseUrlHostname)) {
 try {
   // empties every table so each benchmark run starts from the same data
   await db.execute(
-    sql`TRUNCATE ${orders}, ${reservationSeats}, ${reservations}, ${seats}, ${events}, ${users} CASCADE`,
+    sql`TRUNCATE ${orders}, ${seatHolds}, ${reservationSeats}, ${reservations}, ${seats}, ${events}, ${users} CASCADE`,
   );
 } finally {
   await pool.end();

@@ -85,6 +85,15 @@ export const reservationSeats = pgTable(
   (table) => [primaryKey({ columns: [table.reservationId, table.seatId] })],
 );
 
+export const seatHolds = pgTable('seat_holds', {
+  seatId: uuid('seat_id')
+    .primaryKey()
+    .references(() => seats.id),
+  reservationId: uuid('reservation_id')
+    .notNull()
+    .references(() => reservations.id),
+});
+
 export const orders = pgTable(
   'orders',
   {
