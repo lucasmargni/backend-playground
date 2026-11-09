@@ -15,4 +15,7 @@ export const HTTP_OK: number = 200;
 export const HTTP_CREATED: number = 201;
 export const HTTP_CONFLICT: number = 409;
 
-export const STRATEGY_NAMES = ['naive'] as const;
+export const RESERVATION_REQUEST_NAME: string = 'reservation';
+export const DISPLAY_ONLY_THRESHOLD: string = 'max>=0';
+
+export const STRATEGY_NAMES = ['naive', 'pessimistic'] as const;

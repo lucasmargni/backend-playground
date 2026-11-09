@@ -5,6 +5,7 @@ import type { Options, Scenario } from 'k6/options';
 
 import {
   BASE_URL,
+  DISPLAY_ONLY_THRESHOLD,
   HTTP_CONFLICT,
   HTTP_CREATED,
   HTTP_OK,
@@ -12,6 +13,7 @@ import {
   JSON_REQUEST_PARAMS,
   MAX_RANDOM_SEATS,
   MIN_RANDOM_SEATS,
+  RESERVATION_REQUEST_NAME,
   STRATEGY_NAMES,
   TOTAL_USERS,
   TOTAL_VIRTUAL_USERS,
@@ -59,6 +61,7 @@ const reserveSeats = (data: SetupData, seatIds: string[]): void => {
 
   const params: Params = {
     headers: { ...JSON_REQUEST_PARAMS.headers, Authorization: `Bearer ${token}` },
+    tags: { name: RESERVATION_REQUEST_NAME },
   };
 
   const body: ReservationBody = { eventId: data.eventId, seatIds };
@@ -81,6 +84,12 @@ const reserveSeats = (data: SetupData, seatIds: string[]): void => {
 
 const randomIntBetween = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+const toReservationDurationMetric = (status?: number): string => {
+  const statusFilter: string = status === undefined ? '' : `,status:${status}`;
+
+  return `http_req_duration{name:${RESERVATION_REQUEST_NAME}${statusFilter}}`;
 };
 
 const pickRandomSeatIds = (seatIds: string[], count: number): string[] => {
@@ -126,7 +135,12 @@ const seatsReserved: Counter = new Counter('seats_reserved');
 
 export const options: Options = {
   scenarios: { [scenarioName]: scenarioMap[scenarioName] },
-  thresholds: { checks: ['rate==1'] },
+  thresholds: {
+    checks: ['rate==1'],
+    [toReservationDurationMetric()]: [DISPLAY_ONLY_THRESHOLD],
+    [toReservationDurationMetric(HTTP_CREATED)]: [DISPLAY_ONLY_THRESHOLD],
+    [toReservationDurationMetric(HTTP_CONFLICT)]: [DISPLAY_ONLY_THRESHOLD],
+  },
 };
 
 export const setup = (): SetupData => {
@@ -202,4 +216,12 @@ export const randomSeats = (data: SetupData): void => {
   const randomSeatIds: string[] = pickRandomSeatIds(data.seatIds, seatCount);
 
   reserveSeats(data, randomSeatIds);
+};
+
+export const handleSummary = (data: unknown): Record<string, string> => {
+  const summaryTarget: string = __ENV.SUMMARY_FILE ?? 'stdout';
+
+  return {
+    [summaryTarget]: JSON.stringify(data, null, 2),
+  };
 };

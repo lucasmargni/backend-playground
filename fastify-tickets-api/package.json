@@ -14,7 +14,9 @@
     "db:reset": "tsx --env-file=.env src/db/reset.ts && npm run db:seed",
     "typecheck": "tsc --noEmit && tsc --noEmit -p load-tests",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "bench": "bash load-tests/run-benchmarks.sh",
+    "bench:report": "tsx scripts/bench-report.ts"
   },
   "keywords": [],
   "author": "",
