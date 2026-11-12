@@ -3,6 +3,7 @@ import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import Fastify from 'fastify';
 import { Type, type Static } from 'typebox';
 
+import { logger } from './common/logger.js';
 import type { AppInstance } from './common/types/index.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { jwtPlugin } from './plugins/jwt.js';
@@ -30,7 +31,9 @@ if (
 const enableBenchmarkRoutes: boolean = benchmarkRoutesEnv === 'true';
 
 export const buildApp = (): AppInstance => {
-  const app: AppInstance = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
+  const app: AppInstance = Fastify({
+    loggerInstance: logger,
+  }).withTypeProvider<TypeBoxTypeProvider>();
 
   app.get('/health', { schema: { response: { 200: HealthSchema } } }, (): HealthResponse => {
     return { status: 'ok' };
