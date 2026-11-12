@@ -2,9 +2,7 @@ import { Queue } from 'bullmq';
 
 import type { ReservationDB, ReservationExpiryJobData } from '../common/types/index.js';
 import { redisConnection } from './connection.js';
-
-export const RESERVATION_EXPIRY_QUEUE: string = 'reservation-expiry';
-export const EXPIRE_RESERVATION_JOB: string = 'expire-reservation';
+import { EXPIRE_RESERVATION_JOB, RESERVATION_EXPIRY_QUEUE } from './names.js';
 
 export const reservationExpiryQueue: Queue<ReservationExpiryJobData, boolean> = new Queue(
   RESERVATION_EXPIRY_QUEUE,
@@ -17,6 +15,13 @@ export const scheduleReservationExpiry = async (reservation: ReservationDB): Pro
   await reservationExpiryQueue.add(
     EXPIRE_RESERVATION_JOB,
     { reservationId: reservation.id },
-    { jobId: reservation.id, delay, removeOnComplete: true, removeOnFail: { count: 1000 } },
+    {
+      jobId: reservation.id,
+      delay,
+      removeOnComplete: true,
+      removeOnFail: { count: 1000 },
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 1000 },
+    },
   );
 };
