@@ -36,3 +36,7 @@ export type OrderDB = typeof orders.$inferSelect;
 export type SeatStatusDB = SeatDB['status'];
 export type ReservationStatusDB = ReservationDB['status'];
 export type OrderStatusDB = OrderDB['status'];
+
+export type SeatIdRow = {
+  id: string;
+};

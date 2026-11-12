@@ -1,13 +1,9 @@
 import { asc, eq, sql, type SQL } from 'drizzle-orm';
 
-import type { SeatDB, SeatStatusDB, Transaction } from '../common/types/index.js';
+import type { SeatDB, SeatIdRow, SeatStatusDB, Transaction } from '../common/types/index.js';
 import { db } from '../db/index.js';
 import { seats } from '../db/schema.js';
 import { findEvent } from './events.js';
-
-type SeatIdRow = {
-  id: string;
-};
 
 export const findEventSeats = async (eventId: string): Promise<SeatDB[]> => {
   await findEvent(eventId);
