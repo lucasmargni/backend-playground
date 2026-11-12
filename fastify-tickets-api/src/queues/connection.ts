@@ -1,4 +1,4 @@
-import type { ConnectionOptions } from 'bullmq';
+import { Redis, type RedisOptions } from 'ioredis';
 
 const redisHost: string | undefined = process.env.REDIS_HOST;
 const redisPortEnv: string | undefined = process.env.REDIS_PORT;
@@ -16,7 +16,10 @@ if (!Number.isInteger(redisPort) || redisPort < 1 || redisPort > 65535) {
   throw new Error(`Invalid REDIS_PORT "${redisPortEnv}", expected an integer between 1 and 65535`);
 }
 
-export const redisConnection: ConnectionOptions = {
-  host: redisHost,
-  port: redisPort,
+export const createRedisConnection = (options: RedisOptions): Redis => {
+  return new Redis({
+    host: redisHost,
+    port: redisPort,
+    ...options,
+  });
 };

@@ -17,7 +17,7 @@ import type {
 import { FOREIGN_KEY_VIOLATION, isPostgresViolation, RESERVATIONS_USER_FK } from '../db/errors.js';
 import { reservations, reservationSeats } from '../db/schema.js';
 
-const HOLD_DURATION_MINUTES: number = 15;
+const HOLD_DURATION_SECONDS: number = 15 * 60;
 
 export const assertSeatsReservable = (seatIds: string[], foundSeats: SeatDB[]): void => {
   const missingSeatIds: string[] = findMissingSeatIds(
@@ -47,7 +47,7 @@ export const insertReservation = async (
     .values({
       userId,
       eventId,
-      expiresAt: sql`now() + make_interval(mins => ${HOLD_DURATION_MINUTES})`,
+      expiresAt: sql`now() + make_interval(secs => ${HOLD_DURATION_SECONDS})`,
     })
     .returning();
 
