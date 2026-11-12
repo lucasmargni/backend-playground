@@ -3,6 +3,7 @@ export type * from './auth.js';
 export type * from './db.js';
 export type * from './errors.js';
 export type * from './events.js';
+export type * from './jobs.js';
 export type * from './pagination.js';
 export type * from './reservations.js';
 export type * from './seats.js';
