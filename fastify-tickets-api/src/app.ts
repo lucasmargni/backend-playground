@@ -9,6 +9,7 @@ import { jwtPlugin } from './plugins/jwt.js';
 import { authRoutes } from './routes/auth.js';
 import { benchmarkRoutes } from './routes/benchmark.js';
 import { eventsRoutes } from './routes/events.js';
+import { reservationsRoutes } from './routes/reservations.js';
 
 const HealthSchema = Type.Object({ status: Type.String() });
 type HealthResponse = Static<typeof HealthSchema>;
@@ -40,6 +41,7 @@ export const buildApp = (): AppInstance => {
   app.register(jwtPlugin);
   app.register(eventsRoutes, { prefix: '/events' });
   app.register(authRoutes, { prefix: '/auth' });
+  app.register(reservationsRoutes, { prefix: '/reservations' });
 
   if (enableBenchmarkRoutes) {
     app.register(benchmarkRoutes, { prefix: BENCHMARK_ROUTES_PREFIX });
