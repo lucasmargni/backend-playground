@@ -1,8 +1,8 @@
 import { Queue } from 'bullmq';
+import type { Redis } from 'ioredis';
 
 import { logger } from '../common/logger.js';
 import type { ReservationSweepJobData } from '../common/types/index.js';
-import { createRedisConnection } from './connection.js';
 import {
   RESERVATION_SWEEP_QUEUE,
   RESERVATION_SWEEP_SCHEDULER_ID,
@@ -11,20 +11,29 @@ import {
 
 const RESERVATION_SWEEP_INTERVAL_MS: number = 30000;
 
-export const reservationSweepQueue: Queue<ReservationSweepJobData, number> = new Queue(
-  RESERVATION_SWEEP_QUEUE,
-  { connection: createRedisConnection({ enableOfflineQueue: true }) },
-).on('error', (error: Error): void => {
-  logger.error(
-    {
-      err: error,
-    },
-    'Reservation sweep queue error',
-  );
-});
+export const createReservationSweepQueue = (
+  connection: Redis,
+): Queue<ReservationSweepJobData, number> => {
+  const queue: Queue<ReservationSweepJobData, number> = new Queue(RESERVATION_SWEEP_QUEUE, {
+    connection,
+  });
 
-export const scheduleReservationSweep = async (): Promise<void> => {
-  await reservationSweepQueue.upsertJobScheduler(
+  queue.on('error', (error: Error): void => {
+    logger.error(
+      {
+        err: error,
+      },
+      'Reservation sweep queue error',
+    );
+  });
+
+  return queue;
+};
+
+export const scheduleReservationSweep = async (
+  queue: Queue<ReservationSweepJobData, number>,
+): Promise<void> => {
+  await queue.upsertJobScheduler(
     RESERVATION_SWEEP_SCHEDULER_ID,
     { every: RESERVATION_SWEEP_INTERVAL_MS },
     {

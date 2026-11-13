@@ -1,8 +1,8 @@
 import { Worker, type Job } from 'bullmq';
+import type { Redis } from 'ioredis';
 
 import { logger } from '../common/logger.js';
 import type { ReservationSweepJobData } from '../common/types/index.js';
-import { createRedisConnection } from '../queues/connection.js';
 import { RESERVATION_SWEEP_QUEUE } from '../queues/names.js';
 import { sweepExpiredReservations } from '../services/reservations-expiry.js';
 
@@ -20,12 +20,14 @@ export const processReservationSweep = async (
   return expiredCount;
 };
 
-export const createReservationSweepWorker = (): Worker<ReservationSweepJobData, number> => {
+export const createReservationSweepWorker = (
+  connection: Redis,
+): Worker<ReservationSweepJobData, number> => {
   const worker: Worker<ReservationSweepJobData, number> = new Worker(
     RESERVATION_SWEEP_QUEUE,
     processReservationSweep,
     {
-      connection: createRedisConnection({ maxRetriesPerRequest: null }),
+      connection,
       concurrency: RESERVATION_SWEEP_CONCURRENCY,
     },
   );

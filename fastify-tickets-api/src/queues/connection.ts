@@ -16,6 +16,8 @@ if (!Number.isInteger(redisPort) || redisPort < 1 || redisPort > 65535) {
   throw new Error(`Invalid REDIS_PORT "${redisPortEnv}", expected an integer between 1 and 65535`);
 }
 
+export const workerRedisOptions: RedisOptions = { maxRetriesPerRequest: null };
+
 export const createRedisConnection = (options: RedisOptions): Redis => {
   return new Redis({
     host: redisHost,

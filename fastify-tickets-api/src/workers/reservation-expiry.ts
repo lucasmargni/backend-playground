@@ -1,8 +1,8 @@
 import { Worker, type Job } from 'bullmq';
+import type { Redis } from 'ioredis';
 
 import { logger } from '../common/logger.js';
 import type { ReservationExpiryJobData } from '../common/types/index.js';
-import { createRedisConnection } from '../queues/connection.js';
 import { RESERVATION_EXPIRY_QUEUE } from '../queues/names.js';
 import { expireReservation } from '../services/reservations-expiry.js';
 
@@ -22,12 +22,14 @@ export const processReservationExpiry = async (
   return expired;
 };
 
-export const createReservationExpiryWorker = (): Worker<ReservationExpiryJobData, boolean> => {
+export const createReservationExpiryWorker = (
+  connection: Redis,
+): Worker<ReservationExpiryJobData, boolean> => {
   const worker: Worker<ReservationExpiryJobData, boolean> = new Worker(
     RESERVATION_EXPIRY_QUEUE,
     processReservationExpiry,
     {
-      connection: createRedisConnection({ maxRetriesPerRequest: null }),
+      connection,
       concurrency: RESERVATION_EXPIRY_CONCURRENCY,
     },
   );
