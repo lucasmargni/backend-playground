@@ -1,5 +1,6 @@
 import { Queue } from 'bullmq';
 
+import { logger } from '../common/logger.js';
 import type { ReservationDB, ReservationExpiryJobData } from '../common/types/index.js';
 import { createRedisConnection } from './connection.js';
 import { EXPIRE_RESERVATION_JOB, RESERVATION_EXPIRY_QUEUE } from './names.js';
@@ -7,7 +8,14 @@ import { EXPIRE_RESERVATION_JOB, RESERVATION_EXPIRY_QUEUE } from './names.js';
 export const reservationExpiryQueue: Queue<ReservationExpiryJobData, boolean> = new Queue(
   RESERVATION_EXPIRY_QUEUE,
   { connection: createRedisConnection({ enableOfflineQueue: false }) },
-);
+).on('error', (error: Error): void => {
+  logger.error(
+    {
+      err: error,
+    },
+    'Reservation expiry queue error',
+  );
+});
 
 export const scheduleReservationExpiry = async (reservation: ReservationDB): Promise<void> => {
   const delay: number = Math.max(0, reservation.expiresAt.getTime() - Date.now());

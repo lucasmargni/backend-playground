@@ -40,3 +40,7 @@ export type OrderStatusDB = OrderDB['status'];
 export type SeatIdRow = {
   id: string;
 };
+
+export type ReservationIdRow = {
+  id: string;
+};
