@@ -8,6 +8,13 @@ import { expireReservation } from '../services/reservations-expiry.js';
 
 const RESERVATION_EXPIRY_CONCURRENCY: number = 5;
 
+type ExpiryFailureLogContext = {
+  err: Error;
+  reservationId: string | undefined;
+  attempt: number | undefined;
+  maxAttempts: number;
+};
+
 export const processReservationExpiry = async (
   job: Job<ReservationExpiryJobData, boolean>,
 ): Promise<boolean> => {
@@ -37,14 +44,21 @@ export const createReservationExpiryWorker = (
   worker.on(
     'failed',
     (job: Job<ReservationExpiryJobData, boolean> | undefined, error: Error): void => {
-      logger.error(
-        {
-          err: error,
-          reservationId: job?.data.reservationId,
-          attempt: job?.attemptsMade,
-        },
-        'Reservation expiry job failed',
-      );
+      const maxAttempts: number = job?.opts.attempts ?? 1;
+      const isFinalFailure: boolean = job === undefined || job.attemptsMade >= maxAttempts;
+
+      const logContext: ExpiryFailureLogContext = {
+        err: error,
+        reservationId: job?.data.reservationId,
+        attempt: job?.attemptsMade,
+        maxAttempts,
+      };
+
+      if (isFinalFailure) {
+        logger.error(logContext, 'Reservation expiry job failed after all attempts');
+      } else {
+        logger.warn(logContext, 'Reservation expiry job failed, retrying');
+      }
     },
   );
 

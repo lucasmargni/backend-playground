@@ -3,3 +3,9 @@ export type ReservationExpiryJobData = {
 };
 
 export type ReservationSweepJobData = Record<string, never>;
+
+export type ReservationSweepResult = {
+  expiredCount: number;
+  failedCount: number;
+  foundCount: number;
+};

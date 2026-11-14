@@ -4,6 +4,7 @@ import { logger } from '../common/logger.js';
 import type {
   ReservationDB,
   ReservationIdRow,
+  ReservationSweepResult,
   SeatIdRow,
   Transaction,
 } from '../common/types/index.js';
@@ -57,9 +58,10 @@ const findExpiredReservationIds = async (limit: number): Promise<string[]> => {
   return reservationRows.map((reservationRow: ReservationIdRow): string => reservationRow.id);
 };
 
-export const sweepExpiredReservations = async (): Promise<number> => {
+export const sweepExpiredReservations = async (): Promise<ReservationSweepResult> => {
   const expiredReservationIds: string[] = await findExpiredReservationIds(SWEEP_BATCH_SIZE);
   let expiredCount: number = 0;
+  let failedCount: number = 0;
 
   for (const reservationId of expiredReservationIds) {
     try {
@@ -69,9 +71,10 @@ export const sweepExpiredReservations = async (): Promise<number> => {
         expiredCount++;
       }
     } catch (error: unknown) {
+      failedCount++;
       logger.error({ err: error, reservationId }, 'Reservation sweep failed to expire reservation');
     }
   }
 
-  return expiredCount;
+  return { expiredCount, failedCount, foundCount: expiredReservationIds.length };
 };

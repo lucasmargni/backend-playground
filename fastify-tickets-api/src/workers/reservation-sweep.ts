@@ -2,28 +2,34 @@ import { Worker, type Job } from 'bullmq';
 import type { Redis } from 'ioredis';
 
 import { logger } from '../common/logger.js';
-import type { ReservationSweepJobData } from '../common/types/index.js';
+import type { ReservationSweepJobData, ReservationSweepResult } from '../common/types/index.js';
 import { RESERVATION_SWEEP_QUEUE } from '../queues/names.js';
 import { sweepExpiredReservations } from '../services/reservations-expiry.js';
 
 const RESERVATION_SWEEP_CONCURRENCY: number = 1;
 
 export const processReservationSweep = async (
-  _job: Job<ReservationSweepJobData, number>,
-): Promise<number> => {
-  const expiredCount: number = await sweepExpiredReservations();
+  _job: Job<ReservationSweepJobData, ReservationSweepResult>,
+): Promise<ReservationSweepResult> => {
+  const sweepResult: ReservationSweepResult = await sweepExpiredReservations();
 
-  if (expiredCount > 0) {
-    logger.info({ expiredCount }, 'Reservation sweep job processed');
+  if (sweepResult.failedCount > 0 && sweepResult.failedCount === sweepResult.foundCount) {
+    throw new Error(
+      `Reservation sweep failed to expire all ${sweepResult.failedCount} reservations`,
+    );
+  } else if (sweepResult.failedCount > 0) {
+    logger.warn(sweepResult, 'Reservation sweep job completed with failures');
+  } else if (sweepResult.expiredCount > 0) {
+    logger.info({ expiredCount: sweepResult.expiredCount }, 'Reservation sweep job processed');
   }
 
-  return expiredCount;
+  return sweepResult;
 };
 
 export const createReservationSweepWorker = (
   connection: Redis,
-): Worker<ReservationSweepJobData, number> => {
-  const worker: Worker<ReservationSweepJobData, number> = new Worker(
+): Worker<ReservationSweepJobData, ReservationSweepResult> => {
+  const worker: Worker<ReservationSweepJobData, ReservationSweepResult> = new Worker(
     RESERVATION_SWEEP_QUEUE,
     processReservationSweep,
     {
@@ -34,7 +40,7 @@ export const createReservationSweepWorker = (
 
   worker.on(
     'failed',
-    (job: Job<ReservationSweepJobData, number> | undefined, error: Error): void => {
+    (job: Job<ReservationSweepJobData, ReservationSweepResult> | undefined, error: Error): void => {
       logger.error(
         {
           err: error,
