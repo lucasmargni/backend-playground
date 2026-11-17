@@ -3,10 +3,15 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
 import {
+  ActivePaymentExistsError,
   DomainError,
   DuplicateError,
+  IdempotencyKeyMismatchError,
   InvalidCredentialsError,
   NotFoundError,
+  PaymentInProgressError,
+  PaymentProviderError,
+  ReservationNotPayableError,
   SeatsUnavailableError,
   UnknownUserError,
 } from '../common/errors/index.js';
@@ -19,8 +24,13 @@ const errorStatusMappings: readonly ErrorStatusMapping[] = [
   { errorClass: InvalidCredentialsError, statusCode: 401 },
   { errorClass: UnknownUserError, statusCode: 401 },
   { errorClass: NotFoundError, statusCode: 404 },
+  { errorClass: ActivePaymentExistsError, statusCode: 409 },
   { errorClass: DuplicateError, statusCode: 409 },
+  { errorClass: PaymentInProgressError, statusCode: 409 },
+  { errorClass: ReservationNotPayableError, statusCode: 409 },
   { errorClass: SeatsUnavailableError, statusCode: 409 },
+  { errorClass: IdempotencyKeyMismatchError, statusCode: 422 },
+  { errorClass: PaymentProviderError, statusCode: 502 },
 ];
 
 const isClientError = (error: Error): boolean => {

@@ -2,6 +2,7 @@ import type { Static } from 'typebox';
 
 import type {
   CreateReservationBodySchema,
+  ReservationParamsSchema,
   ReservationSchema,
   ReservationStatusSchema,
 } from '../../schemas/reservations.js';
@@ -29,3 +30,5 @@ export type ReservationResult = {
 export type CreateReservationService = (
   input: CreateReservationInput,
 ) => Promise<ReservationResult>;
+
+export type ReservationParams = Static<typeof ReservationParamsSchema>;

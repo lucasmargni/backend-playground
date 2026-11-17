@@ -50,3 +50,33 @@ export class UnknownUserError extends DomainError {
     super('Unknown user');
   }
 }
+
+export class IdempotencyKeyMismatchError extends DomainError {
+  constructor(idempotencyKey: string) {
+    super(`Idempotency key ${idempotencyKey} was already used for a different reservation`);
+  }
+}
+
+export class PaymentInProgressError extends DomainError {
+  constructor(idempotencyKey: string) {
+    super(`Payment with idempotency key ${idempotencyKey} is still in progress, retry later`);
+  }
+}
+
+export class ReservationNotPayableError extends DomainError {
+  constructor(reservationId: string) {
+    super(`Reservation ${reservationId} is not pending or has expired`);
+  }
+}
+
+export class ActivePaymentExistsError extends DomainError {
+  constructor(reservationId: string) {
+    super(`Reservation ${reservationId} already has a payment in progress or completed`);
+  }
+}
+
+export class PaymentProviderError extends DomainError {
+  constructor(idempotencyKey: string) {
+    super(`Payment provider did not respond for idempotency key ${idempotencyKey}`);
+  }
+}

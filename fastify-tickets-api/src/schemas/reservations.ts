@@ -27,3 +27,7 @@ export const ReservationSchema = Type.Object({
   expiresAt: Type.String({ format: 'date-time' }),
   createdAt: Type.String({ format: 'date-time' }),
 });
+
+export const ReservationParamsSchema = Type.Object({
+  reservationId: Type.String({ format: 'uuid' }),
+});
