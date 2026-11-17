@@ -5,6 +5,7 @@ export type * from './errors.js';
 export type * from './events.js';
 export type * from './jobs.js';
 export type * from './pagination.js';
+export type * from './payments.js';
 export type * from './reservations.js';
 export type * from './seats.js';
 export type * from './users.js';
