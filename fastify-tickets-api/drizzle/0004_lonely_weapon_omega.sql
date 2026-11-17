@@ -1,0 +1,2 @@
+ALTER TABLE "orders" DROP CONSTRAINT "orders_reservation_id_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "orders_reservation_id_active_unique" ON "orders" USING btree ("reservation_id") WHERE "orders"."status" IN ('pending', 'paid');

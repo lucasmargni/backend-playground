@@ -8,6 +8,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -100,12 +101,16 @@ export const orders = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     reservationId: uuid('reservation_id')
       .notNull()
-      .unique()
       .references(() => reservations.id),
     amountCents: integer('amount_cents').notNull(),
     status: orderStatus('status').notNull().default('pending'),
     idempotencyKey: uuid('idempotency_key').notNull().unique(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [check('orders_amount_cents_positive', sql`${table.amountCents} > 0`)],
+  (table) => [
+    uniqueIndex('orders_reservation_id_active_unique')
+      .on(table.reservationId)
+      .where(sql`${table.status} IN ('pending', 'paid')`),
+    check('orders_amount_cents_positive', sql`${table.amountCents} > 0`),
+  ],
 );
