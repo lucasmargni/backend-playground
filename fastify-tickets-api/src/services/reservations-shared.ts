@@ -71,6 +71,10 @@ export const findMissingSeatIds = (seatIds: string[], presentSeatIds: string[]):
   return seatIds.filter((seatId: string): boolean => !presentSeatIdsSet.has(seatId));
 };
 
+export const calculateTotalCents = (priceCents: number, seatCount: number): number => {
+  return priceCents * seatCount;
+};
+
 export const toReservationError = (error: unknown): unknown => {
   if (
     isPostgresViolation(error, { code: FOREIGN_KEY_VIOLATION, constraint: RESERVATIONS_USER_FK })
@@ -86,5 +90,9 @@ export const toReservationResult = (
   seatIds: string[],
   event: EventDB,
 ): ReservationResult => {
-  return { reservation, seatIds, totalCents: event.priceCents * seatIds.length };
+  return {
+    reservation,
+    seatIds,
+    totalCents: calculateTotalCents(event.priceCents, seatIds.length),
+  };
 };

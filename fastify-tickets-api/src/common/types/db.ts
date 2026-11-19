@@ -37,10 +37,18 @@ export type SeatStatusDB = SeatDB['status'];
 export type ReservationStatusDB = ReservationDB['status'];
 export type OrderStatusDB = OrderDB['status'];
 
+export type Count = {
+  count: number;
+};
+
 export type SeatIdRow = {
   id: string;
 };
 
 export type ReservationIdRow = {
   id: string;
+};
+
+export type EventPriceRow = {
+  priceCents: number;
 };

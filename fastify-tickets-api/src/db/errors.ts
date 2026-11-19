@@ -6,6 +6,8 @@ import type { PostgresViolation } from '../common/types/index.js';
 export const FOREIGN_KEY_VIOLATION: string = '23503';
 export const UNIQUE_VIOLATION: string = '23505';
 
+export const ORDERS_IDEMPOTENCY_KEY_UNIQUE: string = 'orders_idempotency_key_unique';
+export const ORDERS_RESERVATION_ID_ACTIVE_UNIQUE: string = 'orders_reservation_id_active_unique';
 export const RESERVATIONS_USER_FK: string = 'reservations_user_id_users_id_fk';
 export const SEAT_HOLDS_PKEY: string = 'seat_holds_pkey';
 export const USERS_EMAIL_UNIQUE: string = 'users_email_unique';

@@ -2,6 +2,7 @@ import { and, asc, count, eq, gte, lte, type SQL } from 'drizzle-orm';
 
 import { NotFoundError } from '../common/errors/index.js';
 import type {
+  Count,
   EventDB,
   EventDetailsResult,
   EventFilters,
@@ -10,8 +11,6 @@ import type {
 } from '../common/types/index.js';
 import { db } from '../db/index.js';
 import { events, seats } from '../db/schema.js';
-
-type Count = { count: number };
 
 export const findEvents = async (
   filters: EventFilters,
