@@ -1,8 +1,8 @@
-import { asc, eq, sql, type SQL } from 'drizzle-orm';
+import { asc, eq, inArray, sql, type SQL } from 'drizzle-orm';
 
 import type { SeatDB, SeatIdRow, SeatStatusDB, Transaction } from '../common/types/index.js';
 import { db } from '../db/index.js';
-import { seats } from '../db/schema.js';
+import { reservationSeats, seats } from '../db/schema.js';
 import { findEvent } from './events.js';
 
 export const findEventSeats = async (eventId: string): Promise<SeatDB[]> => {
@@ -32,4 +32,19 @@ export const updateSeatStatus = async (
     .returning({ id: seats.id });
 
   return rows.map((row: SeatIdRow): string => row.id);
+};
+
+export const updateReservationSeatStatus = async (
+  tx: Transaction,
+  reservationId: string,
+  status: SeatStatusDB,
+): Promise<void> => {
+  const rows: SeatIdRow[] = await tx
+    .select({ id: reservationSeats.seatId })
+    .from(reservationSeats)
+    .where(eq(reservationSeats.reservationId, reservationId));
+
+  const seatIds: string[] = rows.map((row: SeatIdRow): string => row.id);
+
+  await updateSeatStatus(tx, inArray(seats.id, seatIds), status);
 };

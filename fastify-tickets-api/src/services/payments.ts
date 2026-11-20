@@ -1,21 +1,27 @@
-import { and, count, eq, sql } from 'drizzle-orm';
+import { and, count, eq, sql, type SQL } from 'drizzle-orm';
 
 import {
   ActivePaymentExistsError,
   IdempotencyKeyMismatchError,
   NotFoundError,
+  PaymentInProgressError,
+  PaymentProviderError,
   ReservationNotPayableError,
 } from '../common/errors/index.js';
+import { logger } from '../common/logger.js';
 import type {
+  ChargeStatus,
   Count,
   EventPriceRow,
   LockedReservation,
   OrderDB,
+  OrderStatusDB,
   PayReservationInput,
   PendingOrderResult,
   ReservationDB,
   Transaction,
 } from '../common/types/index.js';
+import { withTimeout } from '../common/utils/timeout.js';
 import {
   isPostgresViolation,
   ORDERS_IDEMPOTENCY_KEY_UNIQUE,
@@ -24,22 +30,42 @@ import {
 } from '../db/errors.js';
 import { db } from '../db/index.js';
 import { events, orders, reservations, reservationSeats } from '../db/schema.js';
+import { charge } from '../providers/payment-provider.js';
 import { calculateTotalCents } from './reservations-shared.js';
+import { updateReservationSeatStatus } from './seats.js';
 
 type UserReservationIds = Pick<PayReservationInput, 'userId' | 'reservationId'>;
 
-const lockOwnedReservation = async (
+const PAYMENT_PROVIDER_TIMEOUT_MS: number = 10000;
+
+const lockReservation = async (
   tx: Transaction,
-  { userId, reservationId }: UserReservationIds,
-): Promise<LockedReservation> => {
+  condition: SQL | undefined,
+): Promise<LockedReservation | undefined> => {
+  if (condition === undefined) {
+    throw new Error('lockReservation requires a condition');
+  }
+
   const [lockedReservation]: LockedReservation[] = await tx
     .select({
       reservation: reservations,
       isExpired: sql<boolean>`${reservations.expiresAt} <= now()`,
     })
     .from(reservations)
-    .where(and(eq(reservations.id, reservationId), eq(reservations.userId, userId)))
+    .where(condition)
     .for('update');
+
+  return lockedReservation;
+};
+
+const lockOwnedReservation = async (
+  tx: Transaction,
+  { userId, reservationId }: UserReservationIds,
+): Promise<LockedReservation> => {
+  const lockedReservation: LockedReservation | undefined = await lockReservation(
+    tx,
+    and(eq(reservations.id, reservationId), eq(reservations.userId, userId)),
+  );
 
   if (!lockedReservation) {
     throw new NotFoundError('Reservation', reservationId);
@@ -103,6 +129,31 @@ const insertPendingOrder = async (
   return order;
 };
 
+const requestCharge = async (order: OrderDB): Promise<ChargeStatus> => {
+  try {
+    return await withTimeout(
+      charge(order.idempotencyKey, order.amountCents),
+      PAYMENT_PROVIDER_TIMEOUT_MS,
+      `Payment provider did not respond within ${PAYMENT_PROVIDER_TIMEOUT_MS} ms`,
+    );
+  } catch (error: unknown) {
+    logger.warn(
+      { err: error, orderId: order.id, idempotencyKey: order.idempotencyKey },
+      'Payment provider charge failed, order left pending for recovery',
+    );
+    throw new PaymentProviderError(order.idempotencyKey);
+  }
+};
+
+const toOrderStatus = (chargeStatus: ChargeStatus): OrderStatusDB => {
+  const chargeToOrder: Record<ChargeStatus, OrderStatusDB> = {
+    approved: 'paid',
+    rejected: 'failed',
+  };
+
+  return chargeToOrder[chargeStatus];
+};
+
 export const createPendingOrder = async (
   input: PayReservationInput,
 ): Promise<PendingOrderResult> => {
@@ -159,4 +210,72 @@ export const createPendingOrder = async (
 
     throw error;
   }
+};
+
+export const finalizeOrder = async (
+  order: OrderDB,
+  chargeStatus: ChargeStatus,
+): Promise<OrderDB> => {
+  return db.transaction(async (tx: Transaction): Promise<OrderDB> => {
+    const lockedReservation: LockedReservation | undefined = await lockReservation(
+      tx,
+      eq(reservations.id, order.reservationId),
+    );
+
+    if (!lockedReservation) {
+      throw new Error(`Reservation ${order.reservationId} of order ${order.id} not found`);
+    }
+
+    const [finalizedOrder]: OrderDB[] = await tx
+      .update(orders)
+      .set({ status: toOrderStatus(chargeStatus) })
+      .where(and(eq(orders.id, order.id), eq(orders.status, 'pending')))
+      .returning();
+
+    if (!finalizedOrder) {
+      const existingOrder: OrderDB | undefined = await findOrderByIdempotencyKey(
+        tx,
+        order.idempotencyKey,
+      );
+
+      if (!existingOrder) {
+        throw new Error(`Order ${order.id} not found after its conditional update matched no rows`);
+      }
+
+      return existingOrder;
+    }
+
+    if (finalizedOrder.status === 'paid') {
+      if (lockedReservation.reservation.status !== 'pending') {
+        throw new Error(
+          `Reservation ${lockedReservation.reservation.id} is no longer pending after an approved charge for order ${order.id}`,
+        );
+      }
+
+      await tx
+        .update(reservations)
+        .set({ status: 'confirmed' })
+        .where(eq(reservations.id, lockedReservation.reservation.id));
+
+      await updateReservationSeatStatus(tx, lockedReservation.reservation.id, 'sold');
+    }
+
+    return finalizedOrder;
+  });
+};
+
+export const payReservation = async (input: PayReservationInput): Promise<OrderDB> => {
+  const { order, kind }: PendingOrderResult = await createPendingOrder(input);
+
+  if (kind === 'existing') {
+    if (order.status === 'pending') {
+      throw new PaymentInProgressError(input.idempotencyKey);
+    }
+
+    return order;
+  }
+
+  const chargeStatus: ChargeStatus = await requestCharge(order);
+
+  return finalizeOrder(order, chargeStatus);
 };
