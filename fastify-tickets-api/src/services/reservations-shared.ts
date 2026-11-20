@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
 
 import {
   SeatsNotFoundError,
@@ -8,6 +8,7 @@ import {
 import type {
   CreateReservationInput,
   EventDB,
+  LockedReservation,
   NewReservationSeat,
   ReservationDB,
   ReservationResult,
@@ -73,6 +74,26 @@ export const findMissingSeatIds = (seatIds: string[], presentSeatIds: string[]):
 
 export const calculateTotalCents = (priceCents: number, seatCount: number): number => {
   return priceCents * seatCount;
+};
+
+export const lockReservation = async (
+  tx: Transaction,
+  condition: SQL | undefined,
+): Promise<LockedReservation | undefined> => {
+  if (condition === undefined) {
+    throw new Error('lockReservation requires a condition');
+  }
+
+  const [lockedReservation]: LockedReservation[] = await tx
+    .select({
+      reservation: reservations,
+      isExpired: sql<boolean>`${reservations.expiresAt} <= now()`,
+    })
+    .from(reservations)
+    .where(condition)
+    .for('update');
+
+  return lockedReservation;
 };
 
 export const toReservationError = (error: unknown): unknown => {

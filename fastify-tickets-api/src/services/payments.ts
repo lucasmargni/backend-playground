@@ -1,4 +1,4 @@
-import { and, count, eq, sql, type SQL } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 
 import {
   ActivePaymentExistsError,
@@ -31,32 +31,12 @@ import {
 import { db } from '../db/index.js';
 import { events, orders, reservations, reservationSeats } from '../db/schema.js';
 import { charge } from '../providers/payment-provider.js';
-import { calculateTotalCents } from './reservations-shared.js';
+import { calculateTotalCents, lockReservation } from './reservations-shared.js';
 import { updateReservationSeatStatus } from './seats.js';
 
 type UserReservationIds = Pick<PayReservationInput, 'userId' | 'reservationId'>;
 
 const PAYMENT_PROVIDER_TIMEOUT_MS: number = 10000;
-
-const lockReservation = async (
-  tx: Transaction,
-  condition: SQL | undefined,
-): Promise<LockedReservation | undefined> => {
-  if (condition === undefined) {
-    throw new Error('lockReservation requires a condition');
-  }
-
-  const [lockedReservation]: LockedReservation[] = await tx
-    .select({
-      reservation: reservations,
-      isExpired: sql<boolean>`${reservations.expiresAt} <= now()`,
-    })
-    .from(reservations)
-    .where(condition)
-    .for('update');
-
-  return lockedReservation;
-};
 
 const lockOwnedReservation = async (
   tx: Transaction,

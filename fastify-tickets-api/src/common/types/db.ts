@@ -45,6 +45,10 @@ export type SeatIdRow = {
   id: string;
 };
 
+export type OrderIdRow = {
+  id: string;
+};
+
 export type ReservationIdRow = {
   id: string;
 };
