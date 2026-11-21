@@ -1,11 +1,10 @@
-import type { Queue, Worker } from 'bullmq';
-import type { Redis } from 'ioredis';
+import type { Queue } from 'bullmq';
+import type { Redis, RedisOptions } from 'ioredis';
 
 import { logger } from './common/logger.js';
 import type {
   OrderRecoveryJobData,
   OrderRecoveryResult,
-  ReservationExpiryJobData,
   ReservationSweepJobData,
   ReservationSweepResult,
 } from './common/types/index.js';
@@ -21,25 +20,44 @@ import { createOrderRecoveryWorker } from './workers/order-recovery.js';
 import { createReservationExpiryWorker } from './workers/reservation-expiry.js';
 import { createReservationSweepWorker } from './workers/reservation-sweep.js';
 
+type Closable = { close: () => Promise<void> };
+type BackgroundResource<TResource extends Closable = Closable> = {
+  name: string;
+  connection: Redis;
+  resource: TResource;
+};
+
 const SHUTDOWN_RESOURCE_TIMEOUT_MS: number = 3000;
 
-const expiryWorkerConnection: Redis = createRedisConnection(workerRedisOptions);
-const sweepWorkerConnection: Redis = createRedisConnection(workerRedisOptions);
-const orderRecoveryWorkerConnection: Redis = createRedisConnection(workerRedisOptions);
-const sweepQueueConnection: Redis = createRedisConnection({ enableOfflineQueue: true });
-const orderRecoveryQueueConnection: Redis = createRedisConnection({ enableOfflineQueue: true });
+const createBackgroundResource = <TResource extends Closable>(
+  name: string,
+  createResource: (connection: Redis) => TResource,
+  connectionOptions: RedisOptions,
+): BackgroundResource<TResource> => {
+  const connection: Redis = createRedisConnection(connectionOptions);
+  const resource: TResource = createResource(connection);
 
-const expiryWorker: Worker<ReservationExpiryJobData, boolean> =
-  createReservationExpiryWorker(expiryWorkerConnection);
-const sweepWorker: Worker<ReservationSweepJobData, ReservationSweepResult> =
-  createReservationSweepWorker(sweepWorkerConnection);
-const orderRecoveryWorker: Worker<OrderRecoveryJobData, OrderRecoveryResult> =
-  createOrderRecoveryWorker(orderRecoveryWorkerConnection);
+  return { name, connection, resource };
+};
 
-const sweepQueue: Queue<ReservationSweepJobData, ReservationSweepResult> =
-  createReservationSweepQueue(sweepQueueConnection);
-const orderRecoveryQueue: Queue<OrderRecoveryJobData, OrderRecoveryResult> =
-  createOrderRecoveryQueue(orderRecoveryQueueConnection);
+const sweepQueueResource: BackgroundResource<
+  Queue<ReservationSweepJobData, ReservationSweepResult>
+> = createBackgroundResource('Sweep queue', createReservationSweepQueue, {
+  enableOfflineQueue: true,
+});
+const orderRecoveryQueueResource: BackgroundResource<
+  Queue<OrderRecoveryJobData, OrderRecoveryResult>
+> = createBackgroundResource('Order recovery queue', createOrderRecoveryQueue, {
+  enableOfflineQueue: true,
+});
+
+const backgroundResources: BackgroundResource[] = [
+  createBackgroundResource('Expiry worker', createReservationExpiryWorker, workerRedisOptions),
+  createBackgroundResource('Sweep worker', createReservationSweepWorker, workerRedisOptions),
+  createBackgroundResource('Order recovery worker', createOrderRecoveryWorker, workerRedisOptions),
+  sweepQueueResource,
+  orderRecoveryQueueResource,
+];
 
 let isShuttingDown: boolean = false;
 
@@ -60,19 +78,18 @@ const closeResource = async (name: string, close: Promise<unknown>): Promise<boo
 const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
   logger.info({ signal }, 'Shutting down worker');
 
-  const bullmqClosed: boolean[] = await Promise.all([
-    closeResource('Expiry worker', expiryWorker.close()),
-    closeResource('Sweep worker', sweepWorker.close()),
-    closeResource('Order recovery worker', orderRecoveryWorker.close()),
-    closeResource('Sweep queue', sweepQueue.close()),
-    closeResource('Order recovery queue', orderRecoveryQueue.close()),
-  ]);
+  const bullmqClosed: boolean[] = await Promise.all(
+    backgroundResources.map((backgroundResource: BackgroundResource): Promise<boolean> =>
+      closeResource(backgroundResource.name, backgroundResource.resource.close()),
+    ),
+  );
   const connectionsClosed: boolean[] = await Promise.all([
-    closeResource('Expiry worker redis connection', expiryWorkerConnection.quit()),
-    closeResource('Sweep worker redis connection', sweepWorkerConnection.quit()),
-    closeResource('Order recovery worker redis connection', orderRecoveryWorkerConnection.quit()),
-    closeResource('Sweep queue redis connection', sweepQueueConnection.quit()),
-    closeResource('Order recovery queue redis connection', orderRecoveryQueueConnection.quit()),
+    ...backgroundResources.map((backgroundResource: BackgroundResource): Promise<boolean> =>
+      closeResource(
+        `${backgroundResource.name} redis connection`,
+        backgroundResource.connection.quit(),
+      ),
+    ),
     closeResource('Postgres pool', pool.end()),
   ]);
 
@@ -98,8 +115,8 @@ process.on('SIGTERM', handleSignal);
 
 try {
   await Promise.all([
-    scheduleReservationSweep(sweepQueue),
-    scheduleOrderRecovery(orderRecoveryQueue),
+    scheduleReservationSweep(sweepQueueResource.resource),
+    scheduleOrderRecovery(orderRecoveryQueueResource.resource),
   ]);
   logger.info('Background workers started');
 } catch (error: unknown) {
