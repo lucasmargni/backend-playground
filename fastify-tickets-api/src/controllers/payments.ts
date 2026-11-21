@@ -1,15 +1,18 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import type {
+  FinalOrder,
+  FinalOrderStatus,
   IdempotencyKeyHeaders,
-  OrderDB,
   OrderResponse,
   PayReservationInput,
   ReservationParams,
 } from '../common/types/index.js';
 import { payReservation } from '../services/payments.js';
 
-const toOrderResponse = (order: OrderDB): OrderResponse => {
+const ORDER_STATUS_CODES: Record<FinalOrderStatus, 201 | 402> = { paid: 201, failed: 402 };
+
+const toOrderResponse = (order: FinalOrder): OrderResponse => {
   return {
     id: order.id,
     reservationId: order.reservationId,
@@ -29,15 +32,9 @@ export const postReservationPayment = async (
     idempotencyKey: request.headers['idempotency-key'],
   };
 
-  const order: OrderDB = await payReservation(input);
+  const order: FinalOrder = await payReservation(input);
 
-  if (order.status === 'pending') {
-    throw new Error(
-      `Order ${order.id} is still pending after payment completed, expected paid or failed`,
-    );
-  }
-
-  reply.status(order.status === 'paid' ? 201 : 402);
+  reply.status(ORDER_STATUS_CODES[order.status]);
 
   return toOrderResponse(order);
 };

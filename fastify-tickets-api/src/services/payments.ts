@@ -13,9 +13,11 @@ import type {
   ChargeStatus,
   Count,
   EventPriceRow,
+  FinalOrder,
+  FinalOrderStatus,
   LockedReservation,
+  NewOrder,
   OrderDB,
-  OrderStatusDB,
   PayReservationInput,
   PendingOrderResult,
   ReservationDB,
@@ -36,7 +38,9 @@ import { updateReservationSeatStatus } from './seats.js';
 
 type UserReservationIds = Pick<PayReservationInput, 'userId' | 'reservationId'>;
 
-const PAYMENT_PROVIDER_TIMEOUT_MS: number = 10000;
+type NewPendingOrder = Pick<NewOrder, 'reservationId' | 'amountCents' | 'idempotencyKey'>;
+
+export const PAYMENT_PROVIDER_TIMEOUT_MS: number = 10000;
 
 const lockOwnedReservation = async (
   tx: Transaction,
@@ -93,9 +97,7 @@ const calculateOrderAmountCents = async (
 
 const insertPendingOrder = async (
   tx: Transaction,
-  reservationId: string,
-  amountCents: number,
-  idempotencyKey: string,
+  { reservationId, amountCents, idempotencyKey }: NewPendingOrder,
 ): Promise<OrderDB> => {
   const [order]: OrderDB[] = await tx
     .insert(orders)
@@ -125,13 +127,25 @@ export const requestCharge = async (order: OrderDB): Promise<ChargeStatus> => {
   }
 };
 
-const toOrderStatus = (chargeStatus: ChargeStatus): OrderStatusDB => {
-  const chargeToOrder: Record<ChargeStatus, OrderStatusDB> = {
+const toOrderStatus = (chargeStatus: ChargeStatus): FinalOrderStatus => {
+  const chargeToOrder: Record<ChargeStatus, FinalOrderStatus> = {
     approved: 'paid',
     rejected: 'failed',
   };
 
   return chargeToOrder[chargeStatus];
+};
+
+const isFinalOrder = (order: OrderDB): order is FinalOrder => {
+  return order.status !== 'pending';
+};
+
+const toFinalOrder = (order: OrderDB): FinalOrder => {
+  if (!isFinalOrder(order)) {
+    throw new Error(`Order ${order.id} is still pending after finalization`);
+  }
+
+  return order;
 };
 
 export const createPendingOrder = async (
@@ -160,12 +174,11 @@ export const createPendingOrder = async (
 
       const amountCents: number = await calculateOrderAmountCents(tx, reservation);
 
-      const order: OrderDB = await insertPendingOrder(
-        tx,
-        reservation.id,
+      const order: OrderDB = await insertPendingOrder(tx, {
+        reservationId: reservation.id,
         amountCents,
-        input.idempotencyKey,
-      );
+        idempotencyKey: input.idempotencyKey,
+      });
 
       return { order, kind: 'created' };
     });
@@ -195,8 +208,8 @@ export const createPendingOrder = async (
 export const finalizeOrder = async (
   order: OrderDB,
   chargeStatus: ChargeStatus,
-): Promise<OrderDB> => {
-  return db.transaction(async (tx: Transaction): Promise<OrderDB> => {
+): Promise<FinalOrder> => {
+  return db.transaction(async (tx: Transaction): Promise<FinalOrder> => {
     const lockedReservation: LockedReservation | undefined = await lockReservation(
       tx,
       eq(reservations.id, order.reservationId),
@@ -222,7 +235,7 @@ export const finalizeOrder = async (
         throw new Error(`Order ${order.id} not found after its conditional update matched no rows`);
       }
 
-      return existingOrder;
+      return toFinalOrder(existingOrder);
     }
 
     if (finalizedOrder.status === 'paid') {
@@ -240,15 +253,15 @@ export const finalizeOrder = async (
       await updateReservationSeatStatus(tx, lockedReservation.reservation.id, 'sold');
     }
 
-    return finalizedOrder;
+    return toFinalOrder(finalizedOrder);
   });
 };
 
-export const payReservation = async (input: PayReservationInput): Promise<OrderDB> => {
+export const payReservation = async (input: PayReservationInput): Promise<FinalOrder> => {
   const { order, kind }: PendingOrderResult = await createPendingOrder(input);
 
   if (kind === 'existing') {
-    if (order.status === 'pending') {
+    if (!isFinalOrder(order)) {
       throw new PaymentInProgressError(input.idempotencyKey);
     }
 
@@ -257,5 +270,13 @@ export const payReservation = async (input: PayReservationInput): Promise<OrderD
 
   const chargeStatus: ChargeStatus = await requestCharge(order);
 
-  return finalizeOrder(order, chargeStatus);
+  try {
+    return await finalizeOrder(order, chargeStatus);
+  } catch (error: unknown) {
+    logger.error(
+      { err: error, orderId: order.id, idempotencyKey: order.idempotencyKey, chargeStatus },
+      'Order finalization failed after provider response, order left pending for recovery',
+    );
+    throw error;
+  }
 };

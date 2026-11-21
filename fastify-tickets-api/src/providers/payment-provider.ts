@@ -14,6 +14,9 @@ const SLOW_LATENCY_MS: number = 12000;
 const CHARGE_TTL_SECONDS: number = 60 * 60 * 24;
 
 const paymentConnection: Redis = createRedisConnection({ enableOfflineQueue: false });
+paymentConnection.on('error', (error: Error): void => {
+  logger.error({ err: error }, 'Payment provider redis connection error');
+});
 
 const createChargeKey = (idempotencyKey: string): string => {
   return `provider:charge:${idempotencyKey}`;
@@ -21,6 +24,10 @@ const createChargeKey = (idempotencyKey: string): string => {
 
 const createChargeCountKey = (idempotencyKey: string): string => {
   return `provider:charge-count:${idempotencyKey}`;
+};
+
+export const closePaymentProvider = async (): Promise<'OK'> => {
+  return paymentConnection.quit();
 };
 
 const pickLatencyMs = (): number => {

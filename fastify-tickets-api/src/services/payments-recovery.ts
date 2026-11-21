@@ -2,14 +2,22 @@ import { and, between, count, eq, lt, sql, type SQL } from 'drizzle-orm';
 
 import { PaymentProviderError } from '../common/errors/index.js';
 import { logger } from '../common/logger.js';
-import type { ChargeStatus, Count, OrderDB, OrderRecoveryResult } from '../common/types/index.js';
+import type {
+  ChargeStatus,
+  Count,
+  FinalOrder,
+  OrderDB,
+  OrderRecoveryResult,
+} from '../common/types/index.js';
 import { db } from '../db/index.js';
 import { orders } from '../db/schema.js';
-import { finalizeOrder, requestCharge } from './payments.js';
+import { finalizeOrder, PAYMENT_PROVIDER_TIMEOUT_MS, requestCharge } from './payments.js';
 
 const RECOVERY_BATCH_SIZE: number = 5;
 const STUCK_ORDER_MIN_AGE: SQL = sql`interval '2 minutes'`;
 const STUCK_ORDER_MAX_AGE: SQL = sql`interval '24 hours'`;
+
+export const MAX_RECOVERY_RUN_MS: number = RECOVERY_BATCH_SIZE * PAYMENT_PROVIDER_TIMEOUT_MS;
 
 const findStuckOrders = async (limit: number): Promise<OrderDB[]> => {
   return db
@@ -56,7 +64,7 @@ export const recoverStuckOrders = async (): Promise<OrderRecoveryResult> => {
   for (const order of stuckOrders) {
     try {
       const chargeStatus: ChargeStatus = await requestCharge(order);
-      const finalizedOrder: OrderDB = await finalizeOrder(order, chargeStatus);
+      const finalizedOrder: FinalOrder = await finalizeOrder(order, chargeStatus);
 
       recoveredCount++;
 

@@ -77,6 +77,6 @@ export class ActivePaymentExistsError extends DomainError {
 
 export class PaymentProviderError extends DomainError {
   constructor(idempotencyKey: string) {
-    super(`Payment provider did not respond for idempotency key ${idempotencyKey}`);
+    super(`Payment provider failed for idempotency key ${idempotencyKey}`);
   }
 }

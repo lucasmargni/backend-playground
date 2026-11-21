@@ -1,13 +1,7 @@
 import type { Static } from 'typebox';
 
-import type {
-  IdempotencyKeyHeadersSchema,
-  OrderSchema,
-  OrderStatusSchema,
-} from '../../schemas/orders.js';
-import type { OrderDB, ReservationDB } from './db.js';
-
-export type OrderStatus = Static<typeof OrderStatusSchema>;
+import type { IdempotencyKeyHeadersSchema, OrderSchema } from '../../schemas/orders.js';
+import type { OrderDB, OrderStatusDB } from './db.js';
 
 export type OrderResponse = Static<typeof OrderSchema>;
 
@@ -24,7 +18,5 @@ export type PendingOrderResult = {
   kind: 'existing' | 'created';
 };
 
-export type LockedReservation = {
-  reservation: ReservationDB;
-  isExpired: boolean;
-};
+export type FinalOrderStatus = Exclude<OrderStatusDB, 'pending'>;
+export type FinalOrder = Omit<OrderDB, 'status'> & { status: FinalOrderStatus };
