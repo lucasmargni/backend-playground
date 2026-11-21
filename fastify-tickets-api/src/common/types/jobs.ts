@@ -9,3 +9,12 @@ export type ReservationSweepResult = {
   failedCount: number;
   foundCount: number;
 };
+
+export type OrderRecoveryJobData = Record<string, never>;
+
+export type OrderRecoveryResult = {
+  foundCount: number;
+  recoveredCount: number;
+  failedCount: number;
+  overdueCount: number;
+};

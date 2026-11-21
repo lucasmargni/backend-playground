@@ -109,7 +109,7 @@ const insertPendingOrder = async (
   return order;
 };
 
-const requestCharge = async (order: OrderDB): Promise<ChargeStatus> => {
+export const requestCharge = async (order: OrderDB): Promise<ChargeStatus> => {
   try {
     return await withTimeout(
       charge(order.idempotencyKey, order.amountCents),
