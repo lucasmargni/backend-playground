@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import { db, pool } from './index.js';
 import {
   events,
+  orderConfirmationOutbox,
   orders,
   reservations,
   reservationSeats,
@@ -34,7 +35,7 @@ if (!LOCAL_DATABASE_HOSTNAMES.includes(databaseUrlHostname)) {
 try {
   // empties every table so each benchmark run starts from the same data
   await db.execute(
-    sql`TRUNCATE ${orders}, ${seatHolds}, ${reservationSeats}, ${reservations}, ${seats}, ${events}, ${users} CASCADE`,
+    sql`TRUNCATE ${orderConfirmationOutbox}, ${orders}, ${seatHolds}, ${reservationSeats}, ${reservations}, ${seats}, ${events}, ${users} CASCADE`,
   );
 } finally {
   await pool.end();

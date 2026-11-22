@@ -36,6 +36,13 @@
       "when": 1794944727874,
       "tag": "0004_lonely_weapon_omega",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795379895697,
+      "tag": "0005_add_order_confirmation_outbox",
+      "breakpoints": true
     }
   ]
 }

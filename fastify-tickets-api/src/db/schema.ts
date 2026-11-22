@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   check,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -112,5 +113,21 @@ export const orders = pgTable(
       .on(table.reservationId)
       .where(sql`${table.status} IN ('pending', 'paid')`),
     check('orders_amount_cents_positive', sql`${table.amountCents} > 0`),
+  ],
+);
+
+export const orderConfirmationOutbox = pgTable(
+  'order_confirmation_outbox',
+  {
+    orderId: uuid('order_id')
+      .primaryKey()
+      .references(() => orders.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    enqueuedAt: timestamp('enqueued_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('order_confirmation_outbox_pending_created_at_idx')
+      .on(table.createdAt)
+      .where(sql`${table.enqueuedAt} IS NULL`),
   ],
 );

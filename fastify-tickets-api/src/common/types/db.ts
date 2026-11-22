@@ -2,6 +2,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import type {
   events,
+  orderConfirmationOutbox,
   orders,
   reservations,
   reservationSeats,
@@ -24,6 +25,7 @@ export type NewReservation = typeof reservations.$inferInsert;
 export type NewReservationSeat = typeof reservationSeats.$inferInsert;
 export type NewSeatHold = typeof seatHolds.$inferInsert;
 export type NewOrder = typeof orders.$inferInsert;
+export type NewOrderConfirmationOutbox = typeof orderConfirmationOutbox.$inferInsert;
 
 export type UserDB = typeof users.$inferSelect;
 export type EventDB = typeof events.$inferSelect;
@@ -32,6 +34,7 @@ export type ReservationDB = typeof reservations.$inferSelect;
 export type ReservationSeatDB = typeof reservationSeats.$inferSelect;
 export type SeatHoldDB = typeof seatHolds.$inferSelect;
 export type OrderDB = typeof orders.$inferSelect;
+export type OrderConfirmationOutboxDB = typeof orderConfirmationOutbox.$inferSelect;
 
 export type SeatStatusDB = SeatDB['status'];
 export type ReservationStatusDB = ReservationDB['status'];
