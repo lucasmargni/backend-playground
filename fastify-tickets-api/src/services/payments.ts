@@ -33,6 +33,7 @@ import {
 import { db } from '../db/index.js';
 import { events, orders, reservations, reservationSeats } from '../db/schema.js';
 import { charge } from '../providers/payment-provider.js';
+import { insertOrderConfirmationNote } from './order-confirmation-outbox.js';
 import { calculateTotalCents, lockReservation } from './reservations-shared.js';
 import { updateReservationSeatStatus } from './seats.js';
 
@@ -251,6 +252,8 @@ export const finalizeOrder = async (
         .where(eq(reservations.id, lockedReservation.reservation.id));
 
       await updateReservationSeatStatus(tx, lockedReservation.reservation.id, 'sold');
+
+      await insertOrderConfirmationNote(tx, finalizedOrder.id);
     }
 
     return toFinalOrder(finalizedOrder);
